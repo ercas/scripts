@@ -28,7 +28,7 @@ cd $wpdir
 # fetch the nth image and save it to the specified file in wallpaper dimensions
 function getwp() {
     curl $dailydir$(echo "$files" | sed -n ${1}p | awk \{printf\ \$9\}) | \
-    convert - $memlimits -resize ${res}^ -gravity center -crop $res+0+0 wp$2.jpg   
+    convert - $memlimits -resize ${res}^ -gravity center -crop $res+0+0 wp$2.jpg
 }
 
 # create transition images between the latest image and the previous one
