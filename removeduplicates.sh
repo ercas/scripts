@@ -1,15 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 # ./removeduplicates.sh [dir]
 
-cd "$(test -z "$1" && echo . || echo "$1")"
+# attempt to use gvfs-trash if it's available. otherwise, use rm
+cmd=$(command -v gvfs-trash || echo rm)
 removed=0
+
+cd "$(test -z "$1" && echo . || echo "$1")"
+echo using $cmd
 for selected in *; do
-    if test -f "$selected"; then
+    if [ -f "$selected" ]; then
         echo "checking for duplicates of $selected"
         for compare in *; do
-            if $(cmp -s "$selected" "$compare") && ! test "$selected" == "$compare"; then
+            if $(cmp -s "$selected" "$compare") && ! [ "$(readlink -f "$selected")" == "$(readlink -f "$compare")" ]; then
                 echo "$compare is a duplicate of $selected, removing"
-                rm "$compare"
+                $cmd "$compare"
                 removed=$((removed+1))
             fi
         done
