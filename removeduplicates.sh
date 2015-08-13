@@ -4,29 +4,35 @@
 ######### defaults
 
 cmd=gvfs-trash
-verbose=true
+verbose=false
 recursive=false
+dryrun=false
 
 ######### parse options
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-hrs] [-c command] [directory]
-if directory is not specified, the current directory will be scanned.
-       -h           display this message
-       -s           silent mode
+usage: $(basename $0) [-dhrv] [-c command] [directory]
+       -d           dryrun; don't remove duplicates, only list them
+       -h           display this message and exit
+       -r           remove duplicates in all subdirectories
+       -v           verbose mode
        -c command   specify what command to use to remove files (default $cmd)
+if directory is not specified, the script will run in the current directory.
 EOF
 }
-while getopts ":hrsc:" opt; do
+
+while getopts ":dhrvc:" opt; do
     case $opt in
+        d) dryrun=true ;;
         h) usage; exit 0 ;;
         r) recursive=true ;;
-        s) verbose=false ;;
+        v) verbose=true ;;
         c) cmd="$OPTARG" ;;
         ?) usage; exit 1 ;;
     esac
 done
+
 shift $((OPTIND-1))
 
 ########## functions
@@ -59,10 +65,14 @@ function removeduplicates() {
             selected_fullname="$(readlink -f "$selected")"
             for compare in *; do
                 if [ -f "$compare" ]; then
-                    if $(cmp -s "$selected" "$compare") && ! [ "$selected_fullname" == "$(readlink -f "$compare")" ]; then
-                        output "$compare is a duplicate of $selected, removing"
-                        $cmd "$compare"
-                        removed=$((removed+1))
+                    if $(cmp -s "$selected" "$compare") && \! [ "$selected_fullname" == "$(readlink -f "$compare")" ]; then
+                        if $dryrun; then
+                            echo "$compare is a duplicate of $selected"
+                        else
+                            output "$compare is a duplicate of $selected, removing"
+                            $cmd "$compare"
+                            removed=$((removed+1))
+                        fi                        
                     fi
                 fi
             done

@@ -14,15 +14,17 @@
 # 
 
 # settings
-dailydir=ftp://ftp.nnvl.noaa.gov/View/GOES/Images/Grayscale/Daily/;
+dailydir=ftp://ftp.nnvl.noaa.gov/View/GOES/Images/Grayscale/Daily/
 memlimits="-limit memory 32 -limit map 64"
+wpdir=/tmp/noaa-goes
 
 # setup
-wpdir=/tmp/noaa-goes
 res=$(xrandr | grep -oP "(?<=   ).*(?=\*)" | cut -d \  -f1)
 files="$(curl $dailydir)"
+function quit() { rm -rf $wpdir; exit 0; }
+trap quit SIGINT SIGTERM
+rm -rf $wpdir
 mkdir -p $wpdir
-rm $wpdir/*
 cd $wpdir
 
 # fetch the nth image and save it to the specified file in wallpaper dimensions
@@ -45,3 +47,4 @@ for i in $(seq 24); do
     sleep 3600 # one hour
 done
 
+quit

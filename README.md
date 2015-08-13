@@ -1,6 +1,10 @@
 # scripts
 misc scripts
 
+mpdalbumart.sh
+--------------
+automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/)
+
 removeduplicates.sh
 -------------------
 remove duplicate files in the current directory or the specified directory (if any)
