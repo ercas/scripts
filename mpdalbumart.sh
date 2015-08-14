@@ -15,8 +15,8 @@ delay=2
 
 ######### setup
 
-rgmbid="empty1"
-lastrgmbid="empty2"
+rgmbid="empty"
+lastalbum="empty"
 tempfile=
 
 # hacky way of echoing info without polluting the main loop's pipe
@@ -40,14 +40,25 @@ function quit() {
 
 trap quit SIGINT SIGTERM
 while sleep $delay; do
-    rgmbid="$(mediainfo "$musicdir$(mpc -f %file% | head -n 1)" | \
-              grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
-    if ! [ "$rgmbid" = "$lastrgmbid" ]; then
-        if ! [ -z $rgmbid ]; then
+    currentsong="$musicdir$(mpc -f %file% | head -n 1)"
+    currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
+    if ! [ "$currentalbum" = "$lastalbum" ]; then
+        rm -f tempfile
+        tempfile=$(mktemp -u /tmp/albumart-XXXXX)
+        ffmpeg -i "$currentsong" -loglevel quiet $tempfile.jpg
+        mv $tempfile.jpg $tempfile 2>/dev/null
+        if [ -f $tempfile ]; then
+            log "using embedded cover art"
+            echo $tempfile
+        else
+            log "no embedded cover art, attempting to fetch musicbrainz copy"
+            rgmbid="$(mediainfo "$currentsong" | \
+                      grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
+            if ! [ -z $rgmbid ]; then
                 arturl="$(curl -Ls coverartarchive.org/release-group/$rgmbid | \
                           grep -oP "(?<=small\":\").*250.jpg" | cut -d \" -f1)"
                 if ! [ -z $arturl ]; then
-                    log "cover art url found, changing image"
+                    log "cover art url found, downloading image"
                     rm -f $tempfile
                     tempfile=$(mktemp -u /tmp/albumart-XXXXX)
                     curl -Lso $tempfile $arturl
@@ -58,13 +69,14 @@ while sleep $delay; do
                         echo $noart
                     fi
                 else
-                    log "musicbrainz group release tag found but no art to fetch"
+                    log "musicbrainz group release found but no art to fetch"
                     echo "$noart"
                 fi
-        else
-            log "no musicbrainz group release tag found"
-            echo "$noart"
+            else
+                log "no musicbrainz group release found"
+                echo "$noart"
+            fi
         fi
     fi
-    lastrgmbid=$rgmbid
+    lastalbum="$currentalbum"
 done | meh -ctl
