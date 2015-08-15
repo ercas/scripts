@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# depends: curl, ffmpeg, mediainfo, meh
+# depends: curl, ffmpeg, mediainfo, meh, mpc
 # 
 # automatically fetch and display album art of mpd's currently playing song
 # 
@@ -42,9 +42,8 @@ verbose=false
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-Ahv] [-a artdir] [-d musicdir] [-n interval]
+usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-n interval]
        -a artdir    specify what directory to store album art in
-       -A           write cover art to the currently playing file
        -d musicdir  specify what directory mpd looks in for music
        -h           display this message and exit
        -n interval  specify how long to wait between each loop
@@ -52,9 +51,8 @@ usage: $(basename $0) [-Ahv] [-a artdir] [-d musicdir] [-n interval]
 EOF
 }
 
-while getopts ":Aa:d:hn:v" opt; do
+while getopts ":a:d:hn:v" opt; do
     case $opt in
-        A) addart=true ;;
         a) artdir="$OPTARG" ;;
         d) musicdir="$OPTARG" ;;
         h) usage; exit 0 ;;
@@ -155,8 +153,8 @@ while sleep $delay; do
             fi
         fi
         
-        
     fi
+    # disabled for now
     if ! [ "$currentsong" = "$lastsong" ] && $addart && [ -f $tempfile ]\
         && [ -z "$(mediainfo "$currentsong" | grep Cover\ \ .*\ Yes)" ]; then
         log "writing album art to music file"
