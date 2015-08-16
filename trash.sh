@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # wrapper for gvfs-trash
 
 ########## defaults
