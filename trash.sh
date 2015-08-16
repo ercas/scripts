@@ -40,23 +40,36 @@ function restoreall() {
     done
 }
 
+function remove() {
+    if [ -e "$trashdir/files/$1" ]; then
+        rm -rf $($verbose && echo "-v") "$trashdir/files/$1"
+        rm -f "$trashdir/info/$1.trashinfo"
+    else
+        echo "$1 not found in the trash. use $(basename $0) -l to see all of the files in the trash."
+    fi
+}
+
 ########## parse options
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-hv] [-e] [-l] [-R] [-r trashedfile]
-       -e              empty the trash
+usage: $(basename $0) [-DhlRv] [-d trashedfile] [-r trashedfile] [filestotrash]
+       -D              delete all files/empty the trash
+       -d trashedfile  delete/remove the specified file from the trash
        -h              display this message and exit
        -l              list items in the trash
-       -r trashedfile  restore the specified file from the trash
        -R              restore all files from the trash
+       -r trashedfile  restore the specified file from the trash
        -v              verbose mode
+all options except -v will make the script exit. only do one thing at a time!
+if nothing is specified, the script will simply trash all of the given files.
 EOF
 }
 
-while getopts ":ehlr:Rv" opt; do
+while getopts ":Dd:hlRr:v" opt; do
     case $opt in
-        e) empty; exit 0 ;;
+        D) empty; exit 0 ;;
+        d) remove "$OPTARG"; exit 0 ;;
         h) usage; exit 0 ;;
         l) ls $trashdir/files; exit 0 ;;
         r) restore "$OPTARG"; exit 0 ;;
