@@ -3,6 +3,7 @@
 
 ########## defaults
 
+shopt -s dotglob
 verbose=false
 trashdir="$([ -z "$XDG_DATA_HOME" ] && echo ~/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
@@ -53,26 +54,34 @@ function remove() {
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-DhlRv] [-d trashedfile] [-r trashedfile] [filestotrash]
+usage: $(basename $0) [-v ] [-DhlR] [-d trashedfile] [-r trashedfile] [filestotrash]
        -D              delete all files/empty the trash
        -d trashedfile  delete/remove the specified file from the trash
        -h              display this message and exit
-       -l              list items in the trash
+       -l              list files in the trash
+       -L              list items in the trash with du in order to see sizes
        -R              restore all files from the trash
        -r trashedfile  restore the specified file from the trash
        -v              verbose mode
-all options except -v will make the script exit. only do one thing at a time!
-if nothing is specified, the script will simply trash all of the given files.
+
+-d and -r can be used multiple times to delete or restore multiple files.
+ex: $(basename $0) -r file1 -r file2 -d file3
+
+all options except -d, -r, and -v will make the script exit, and the options are
+carried out in the order that they are specified. so, if you want verbosity,
+make -v your first option. if you want to restore something and then empty the
+trash in the same run, put -r before -D.
 EOF
 }
 
-while getopts ":Dd:hlRr:v" opt; do
+while getopts ":Dd:hlLRr:v" opt; do
     case $opt in
         D) empty; exit 0 ;;
-        d) remove "$OPTARG"; exit 0 ;;
+        d) remove "$OPTARG" ;;
         h) usage; exit 0 ;;
-        l) ls $trashdir/files; exit 0 ;;
-        r) restore "$OPTARG"; exit 0 ;;
+        l) ls -a --ignore="\." --ignore="\.\." $trashdir/files; exit 0 ;;
+        L) cd $trashdir/files; du *; exit 0 ;;
+        r) restore "$OPTARG" ;;
         R) restoreall; exit 0 ;;
         v) verbose=true ;;
         ?) usage; exit 1 ;;
@@ -81,9 +90,13 @@ done
 
 shift $((OPTIND-1))
 
-########## if no options are selected, trash the given files
+########## trash everything after the arguments
 
 for f in "$@"; do
-    gvfs-trash "$f"
-    $verbose && echo "trashed $f"
+    if [ -e "$f" ]; then
+        gvfs-trash "$f"
+        $verbose && echo "trashed $f"
+    else
+        echo "$f does not exist"
+    fi
 done
