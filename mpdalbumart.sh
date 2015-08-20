@@ -106,7 +106,7 @@ while sleep $delay; do
     currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
     currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
     if ! [ "$currentalbum" = "$lastalbum" ]; then
-        rm -f tempfile
+        rm -f $tempfile
         tempfile=$(mktemp -u /tmp/albumart-XXXXX)
         
         ffmpeg -i "$currentsong" -loglevel quiet $tempfile.jpg

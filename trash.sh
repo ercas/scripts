@@ -19,9 +19,10 @@ function urldecode() {
 
 function empty() {
     $verbose && for f in $trashdir/files/*; do
-        echo "removed $f"
+        echo "removing $f"
     done
     gvfs-trash --empty
+    echo "emptied the trash"
 }
 
 function restore() {
@@ -54,12 +55,12 @@ function remove() {
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-v ] [-DhlR] [-d trashedfile] [-r trashedfile] [filestotrash]
+usage: $(basename $0) [-v] [-DhlLR] [-d trashedfile] [-r trashedfile] [filestotrash]
        -D              delete all files/empty the trash
        -d trashedfile  delete/remove the specified file from the trash
        -h              display this message and exit
        -l              list files in the trash
-       -L              list items in the trash with du in order to see sizes
+       -L              list files in the trash with du in order to see sizes
        -R              restore all files from the trash
        -r trashedfile  restore the specified file from the trash
        -v              verbose mode
@@ -80,7 +81,7 @@ while getopts ":Dd:hlLRr:v" opt; do
         d) remove "$OPTARG" ;;
         h) usage; exit 0 ;;
         l) ls -a --ignore="\." --ignore="\.\." $trashdir/files; exit 0 ;;
-        L) cd $trashdir/files; du *; exit 0 ;;
+        L) cd $trashdir/files; du -s *; exit 0 ;;
         r) restore "$OPTARG" ;;
         R) restoreall; exit 0 ;;
         v) verbose=true ;;
@@ -90,7 +91,7 @@ done
 
 shift $((OPTIND-1))
 
-########## trash everything after the arguments
+########## trash all other arguments
 
 for f in "$@"; do
     if [ -e "$f" ]; then
