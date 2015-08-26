@@ -38,32 +38,6 @@ musicdir=/mnt/Shared/music/
 delay=2
 verbose=false
 
-######### parse options
-
-function usage() {
-    cat <<EOF
-usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-n interval]
-       -a artdir    specify what directory to store album art in
-       -d musicdir  specify what directory mpd looks in for music
-       -h           display this message and exit
-       -n interval  specify how long to wait between each loop
-       -v           verbose mode
-EOF
-}
-
-while getopts ":a:d:hn:v" opt; do
-    case $opt in
-        a) artdir="$OPTARG" ;;
-        d) musicdir="$OPTARG" ;;
-        h) usage; exit 0 ;;
-        n) delay="$OPTARG" ;;
-        v) verbose=true ;;
-        ?) usage; exit 1 ;;
-    esac
-done
-
-shift $((OPTIND-1))
-
 ######### setup
 
 rgmbid="empty"
@@ -82,6 +56,15 @@ $verbose && >$logfile && tail -F $logfile 2>/dev/null &
 
 ########## functions
 
+function addart() {
+    ! [ -f "$1" ] && echo "\"$1\" does not exist." && exit 1
+    currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
+    currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
+    currentperformer="$(mediainfo "$currentsong" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
+    albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
+    cp -v "$1" "$artdir/$albumhash"
+}
+
 function ffmpeg-addart() {
     ffmpeg -i "$1" -i "$2" -map 0:0 -map 1:0 -c copy \
     -metadata:s:v title="Cover art" -loglevel quiet "$3"
@@ -98,6 +81,36 @@ function quit() {
     done
     exit 0
 }
+
+######### parse options
+
+function usage() {
+    cat <<EOF
+usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-u albumart] [-n interval]
+       -a artdir      specify what directory to store album art in
+       -d musicdir    specify what directory mpd looks in for music
+       -h             display this message and exit
+       -n interval    specify how long to wait between each loop
+       -u albumart    put the specified album art in the cover art directory for
+                      the current album. embedded art still has priority over
+                      this. -a must be specified before using this option.
+       -v             verbose mode
+EOF
+}
+
+while getopts ":a:d:hn:u:v" opt; do
+    case $opt in
+        a) artdir="$OPTARG" ;;
+        d) musicdir="$OPTARG" ;;
+        h) usage; exit 0 ;;
+        n) delay="$OPTARG" ;;
+        u) addart "$OPTARG"; exit 0 ;;
+        v) verbose=true ;;
+        ?) usage; exit 1 ;;
+    esac
+done
+
+shift $(($OPTIND-1))
 
 ########## main loop
 
@@ -123,7 +136,7 @@ while sleep $delay; do
                 cp "$artdir/$albumhash" $tempfile
                 echo $tempfile
             else
-                log "album not found in cover art directory, attemtping to fetch musicbrainz copy"
+                log "album $albumhash not found in cover art directory, attemtping to fetch musicbrainz copy"
                 rgmbid="$(mediainfo "$currentsong" | grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
                 if ! [ -z $rgmbid ]; then
                     log "musicbrainz release group found"
