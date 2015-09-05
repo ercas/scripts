@@ -22,7 +22,7 @@ case $1 in
     -c) units=metric; suffix=℃ ; shift 1 ;;
     -f) units=imperial; suffix=℉; shift 1 ;;
     -h) usage; exit 0 ;;
-    *) usage; exit 1 ;;
+    -*) usage; exit 1 ;;
 esac
 
 ########## get weather
