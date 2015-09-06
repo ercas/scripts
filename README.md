@@ -25,3 +25,13 @@ a script to fetch the two latest images from the noaa environmental visualizatio
 weather.sh
 ----------
 get the current weather from http://openweathermap.org
+
+    $ ./weather.sh -m 2174003
+    Weather for Brisbane: scattered clouds
+    High:         14°C
+    Current:      12.86°C
+    Low:          11.8°C
+    Humidity:     93%
+    Wind:         2.6mph @ 200°
+    Sunrise:      03:55:53 PM
+    Sunset:       03:36:56 AM

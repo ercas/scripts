@@ -50,10 +50,6 @@ musicdir="$(readlink -f "$musicdir")"
 
 ! [ -z "$artdir" ] && mkdir -p "$artdir"
 
-# hacky way of echoing info without polluting the main loop's pipe
-logfile=/tmp/albumart-log
-$verbose && >$logfile && tail -F $logfile 2>/dev/null &
-
 ########## functions
 
 function addart() {
@@ -71,14 +67,11 @@ function ffmpeg-addart() {
 }
 
 function log() {
-    $verbose && echo $@ >> $logfile
+    $verbose && echo $@ >&2
 }
 
 function quit() {
     rm -f /tmp/albumart*
-    $verbose && ps a | grep $logfile | while read p; do
-        kill $(echo $p | awk '{printf $1}') 2>/dev/null
-    done
     exit 0
 }
 
