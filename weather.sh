@@ -34,7 +34,7 @@ perldate() {
 
 usage() {
     cat <<EOF
-usage: $(basename "$0") [-dhgilmp] [cityid]
+usage: $(basename "$0") [-dhilm] [cityid]
        -d        daily forecast
        -h        display this message and exit
        -i        use imperial
@@ -42,12 +42,8 @@ usage: $(basename "$0") [-dhgilmp] [cityid]
        -m        use metric
        cityid    get weather information for this city id (use -l to find yours)
 
-the columns for -l are cityid, city name, latitude, longitude, and country.
-
-by default, grep will be used to get information from the jsons unless it isn't
-    gnu grep, in which case, perl will be used instead; the script depends on
-    grep -P to work, which bsd grep doesn't have. this decision can be overriden
-    by specifying -g or -p.
+the columns for -l are cityid, city name, latitude, longitude, and country. to
+    find the country code you want, just pipe this to grep.
 EOF
 }
 
