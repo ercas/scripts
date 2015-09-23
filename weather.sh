@@ -43,7 +43,8 @@ usage: $(basename "$0") [-dhilm] [cityid]
        cityid    get weather information for this city id (use -l to find yours)
 
 the columns for -l are cityid, city name, latitude, longitude, and country. to
-    find the country code you want, just pipe this to grep.
+    find the city id you want, just pipe this to grep -i; the number at the
+    beginning of the line is the city id.
 EOF
 }
 
