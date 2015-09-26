@@ -1,6 +1,10 @@
 # scripts
 misc scripts
 
+define.sh
+---------
+define a word by parsing the gutenberg copy of webster's unabridged dictionary
+
 mpdalbumart.sh
 --------------
 automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/)
