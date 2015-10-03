@@ -17,6 +17,10 @@ sortbylinelength.sh
 -------------------
 sort the specified file so that the longest lines are first (or last, if -r is specified)
 
+standaloneshellscript/
+----------------------
+a little experiment with making shell scripts that have all of the resources they need embedded into the shell script itself. just a proof of concept for now
+
 trash.sh
 --------
 wrapper for gvfs-trash that allows for easy trash operations like listing and restoring trashed items from the command line

@@ -65,7 +65,7 @@ function removeduplicates() {
             selected_fullname="$(readlink -f "$selected")"
             for compare in *; do
                 if [ -f "$compare" ]; then
-                    if $(cmp -s "$selected" "$compare") && \! [ "$selected_fullname" == "$(readlink -f "$compare")" ]; then
+                    if $(cmp -s "$selected" "$compare") && ! [ "$selected_fullname" == "$(readlink -f "$compare")" ]; then
                         if $dryrun; then
                             echo "$compare is a duplicate of $selected"
                         else
