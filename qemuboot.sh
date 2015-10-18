@@ -3,7 +3,7 @@
 # sorry for the messiness. i don't plan on adding anything to this in the future
 # and wrote it up really quickly.
 
-configs=$HOME/Documents/qemuboot
+configs=$HOME/.config/qemuboot
 qemuboot=$(basename "$0")
 
 mkdir -p $configs
