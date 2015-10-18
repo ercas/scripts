@@ -27,14 +27,14 @@ function invalidvm() {
 
 function usage() {
     cat << EOF
-usage: $qemuboot add|edit|list|new|usage|/path/to/vm
-       add            add an existing virtual machine
-       edit           edit an existing virtual machine
-       list           list existing virtual machines
-       new            create a new virtual machine
-       usage          view this message and exit
-       /path/to/vm    boot the specified virtual machine
-       -h             displays usage (in case someone tries it)
+usage: $qemuboot add|edit|list|new|usage|[vm]
+       add      add an existing virtual machine
+       edit     edit an existing virtual machine
+       list     list existing virtual machines
+       new      create a new virtual machine
+       usage    view this message and exit
+       [vm]     boot the specified virtual machine
+       -h       displays usage (in case someone tries it)
 EOF
 }
 
