@@ -35,6 +35,7 @@ usage: $qemuboot add|edit|list|new|usage|[vm]
        usage    view this message and exit
        [vm]     boot the specified virtual machine
        -h       displays usage (in case someone tries it)
+ex. "$qemuboot alpine 64" to boot the vm "alpine 64"
 EOF
 }
 
@@ -169,9 +170,9 @@ EOF
             function opt() {
                 sed -n -e "s/^$1 //p" "$configs/$name"
             }
-            cmd="qemu-system-$(opt ARCH) $(opt OPTS) $(opt PATH)"
+            cmd="qemu-system-$(opt ARCH) $(opt OPTS) \"$(opt PATH)\""
             echo "running: $cmd"
-            $cmd
+            sh -c "$cmd"
         fi
     ;;
 esac

@@ -1,5 +1,16 @@
-# scripts
 misc scripts
+
+# directories
+
+standaloneshellscript/
+----------------------
+a little experiment with making shell scripts that have all of the resources they need embedded into the shell script itself. just a proof of concept for now
+
+scrapers/
+---------
+a collection of small website scrapers
+
+# scripts
 
 define.sh
 ---------
@@ -20,10 +31,6 @@ remove duplicate files in the current directory or the specified directory (if a
 sortbylinelength.sh
 -------------------
 sort the specified file so that the longest lines are first (or last, if -r is specified)
-
-standaloneshellscript/
-----------------------
-a little experiment with making shell scripts that have all of the resources they need embedded into the shell script itself. just a proof of concept for now
 
 trash.sh
 --------
