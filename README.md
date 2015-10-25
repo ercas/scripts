@@ -38,7 +38,11 @@ wrapper for gvfs-trash that allows for easy trash operations like listing and re
 
 trim.c
 ------
-an interactive cut. not exactly a "script" but didn't warrant a new repository.
+an interactive "cut". not exactly a "script" but didn't warrant a new repository. precursor to trim.py; will probably be removed in the future.
+
+trim.py
+-------
+an interactive "cut". reads text from stdin and allows the user select what will be printed to stdout via a curses interface.
 
 wplatestgoes.sh
 ---------------

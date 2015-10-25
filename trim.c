@@ -27,6 +27,11 @@ int main(void) {
     int start = 0;
     int end = strlen(msg);
     
+    int key;
+    char before[sizeof(msg)];
+    char during[sizeof(msg)];
+    char after[sizeof(msg)];
+    
     signal(SIGINT, quit);
     
     initscr();
@@ -37,10 +42,7 @@ int main(void) {
     mvprintw(0, 0, "use the arrow keys to narrow the selection.");
     mvprintw(1, 0, "use shift + arrow keys to widen the selection.");
     while (1) {
-        int key = wgetch(stdscr);
-        char before[sizeof(msg)];
-        char during[sizeof(msg)];
-        char after[sizeof(msg)];
+        key = wgetch(stdscr);
         /*
             right arrow: move left bound to the right
             shift + left arrow:  move left bound to the left
