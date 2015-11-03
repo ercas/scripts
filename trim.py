@@ -1,47 +1,88 @@
 #!/usr/bin/python3
 # trim.py - interactive "cut"
 # 
+# dependencies: xclip
+# 
 # mainly designed to make selecting text to be copied easier for people without
 # access to mice, but can also be used in any situation where something like cut
 # is needed but user interaction is desired.
 # 
-# to use, pipe text to this script, then pipe this script to something else.
-# ex. ps | trim.py | cat
+# to use, pipe text to this script and follow the instructions to select text.
+# this text is automatically copied to the clipboard using xclip.
 
-# TODO:
-# * make it possible for trim.py to interact with things other than cat. as it
-#   is right now, it can't interact with anything else like xclip because they
-#   prevent ncurses from showing.
-#   possible solutions:
-#   * something similar to the time command where the rest of the command is
-#     supplied as an argument vector
-#   * something similar to vipe from moreutils where the interactive thing is
-#     opened in a subprocess and then output is passed via a file back to the
-#     main program, which then reads it and outputs it to stdout
+import curses, getopt, os, signal, subprocess, sys
 
-import curses, os, signal, sys
+########## config
 
-if len(sys.argv) > 1:
-    print("this script does not accept arguments; it only reads from stdin.")
-    sys.exit(1)
+# keys to move left bound
+lboundkeys = {
+    261 : 1,   # right
+    258 : 10,  # down
+    393 : -1,  # shift + left
+    # no shift + up
+}
+
+# keys to move right bound
+rboundkeys = {
+    260 : -1,   # left
+    259 : -10,  # up
+    402 : 1,    # shift + right
+    # no shift + down
+}
+
+write = False
+
+########## functions
+
 
 def quit(signal, frame):
-    curses.endwin()
+    try:
+        curses.endwin()
+    except:
+        pass
     sys.exit(0)
+
+def usage():
+    print("usage: [program] | " + os.path.basename(__file__) + " [-hw]\n"
+          "       -h, --help     display this message and exit\n"
+          "       -w, --write    write the trimmed string to stdout\n"
+          "\n"
+          "this program reads from stdin, allows the user to select text, and copies\n"
+          "the selected text to the clipboard using xclip.")
+    quit(0,0)
+
+########## parse options
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "hw", ["help", "write"])
+except:
+    usage()
+
+for opt, arg in opts:
+    if opt in ("-h", "--help"):
+        usage()
+        sys.exit()
+    elif opt in ("-w", "--write"):
+        write = True
+    else:
+        usage()
+
+########## begin
+
 signal.signal(signal.SIGINT, quit)
 
 # many thanks to this answer i found on google: http://stackoverflow.com/a/4000997
 # also many thanks to http://github.com/lizardthunder for helping hunt down the bug
-
-# read from stdin
+# read from stdin then reopen the tty
 msg = sys.stdin.read()
 os.close(sys.stdin.fileno())
-start = 0
-end = len(msg)
-
-# reopen the tty after reading stdin
 fd = open("/dev/tty")
 os.dup2(fd.fileno(), 0)
+
+# selection variables
+during = msg
+start = 0
+end = len(msg)
 
 # curses settings
 stdscr = curses.initscr()
@@ -61,17 +102,23 @@ stdscr.attroff(curses.A_REVERSE)
 # main loop, break when the user presses enter
 while True:
     key = stdscr.getch()
-    if key == curses.KEY_RIGHT and (start + 1 < end):
-        start += 1
-    elif key == curses.KEY_LEFT and (end - 1 > start):
-        end -= 1
-    elif key == 10: # enter
+    #stdscr.addstr(3, 0, str(key) + "\trkeys: " + str(key in rboundkeys) +  "\tlkeys: " + str(key in lboundkeys) + " ")
+    
+    # move left bound
+    if key in lboundkeys:
+        change = lboundkeys[key]
+        if ((change < 1) and (start - change >= 0)) or (start + change < end):
+                start += change
+        
+    # move right bound
+    elif key in rboundkeys:
+        change = rboundkeys[key]
+        if ((change > 1) and (end + change <= len(msg-2))) or (end - change > start):
+                end += change
+        
+    # enter
+    elif key == 10:
         break
-    elif key == 393 and (start - 1 >= 0): # shift + left
-        start -= 1
-    elif key == 402 and (end - 1 <= len(msg)-2): # shift + right
-        end += 1
-    #stdscr.addstr(3, 0, "keycode: " + str(key) + "\tstart: " + str(start) + "\tend: " + str(end) + " ")
     
     before = msg[:start]
     during = msg[start:end]
@@ -82,5 +129,9 @@ while True:
     stdscr.attroff(curses.A_REVERSE)
     stdscr.addstr(after)
 
-print(during)
+if write:
+    sys.stdout.write(during)
+else:
+    subprocess.Popen(["xclip","-i"], stdin=subprocess.PIPE).stdin.write(during.encode("utf-8"))
+
 quit(0, 0)
