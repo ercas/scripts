@@ -35,7 +35,6 @@ noart="$(dirname "$(readlink -f "$0")")/mpdalbumart-noart.png"
 artdir=
 addart=false
 musicdir=/mnt/Shared/music/
-delay=2
 verbose=false
 
 ######### setup
@@ -79,11 +78,10 @@ function quit() {
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-u albumart] [-n interval]
+usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-u albumart]
        -a artdir      specify what directory to store album art in
        -d musicdir    specify what directory mpd looks in for music
        -h             display this message and exit
-       -n interval    specify how long to wait between each loop
        -u albumart    put the specified album art in the cover art directory for
                       the current album. embedded art still has priority over
                       this. -a must be specified before using this option.
@@ -91,12 +89,11 @@ usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-u albumart] [-n interval
 EOF
 }
 
-while getopts ":a:d:hn:u:v" opt; do
+while getopts ":a:d:h:u:v" opt; do
     case $opt in
         a) artdir="$OPTARG" ;;
         d) musicdir="$OPTARG" ;;
         h) usage; exit 0 ;;
-        n) delay="$OPTARG" ;;
         u) addart "$OPTARG"; exit 0 ;;
         v) verbose=true ;;
         ?) usage; exit 1 ;;
@@ -108,7 +105,7 @@ shift $(($OPTIND-1))
 ########## main loop
 
 trap quit SIGINT SIGTERM
-while sleep $delay; do
+while true :; do
     currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
     currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
     if ! [ "$currentalbum" = "$lastalbum" ]; then
@@ -170,4 +167,5 @@ while sleep $delay; do
     fi
     lastalbum="$currentalbum"
     lastsong="$currentsong"
+    mpc idle player >/dev/null
 done | meh -ctl

@@ -4,8 +4,6 @@
 first=http://www.octopuspie.com/2007-05-14/001-pea-wiggle/
 outdir=$HOME/Pictures/webcomics/octopuspie
 
-mkdir -p $outdir
-
 # recursive function to grab all strips from after the given strip
 function grabnext() {
     src="$(curl $1)"

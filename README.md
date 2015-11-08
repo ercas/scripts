@@ -1,4 +1,4 @@
-misc scripts
+these scripts have not been tested with ash/dash. if something doesn't work, change the interpreter directive to use /usr/bin/bash.
 
 directories
 -----------
