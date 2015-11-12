@@ -39,6 +39,9 @@ verbose=false
 
 ######### setup
 
+currentsong=
+currentalbum=
+currentperformat=
 rgmbid="empty"
 lastalbum="empty"
 lastsong="empty"
@@ -53,9 +56,6 @@ musicdir="$(readlink -f "$musicdir")"
 
 function addart() {
     ! [ -f "$1" ] && echo "\"$1\" does not exist." && exit 1
-    currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
-    currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
-    currentperformer="$(mediainfo "$currentsong" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
     albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
     cp -v "$1" "$artdir/$albumhash"
 }
@@ -78,8 +78,6 @@ function getart() {
     fi
     
     log "no embedded cover art, attempting to search in cover art directory"
-    currentperformer="$(mediainfo "$currentsong" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
-    albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
     if [ -f "$artdir/$albumhash" ]; then
         log "using album art from cover art directory"
         cp "$artdir/$albumhash" $tempfile
@@ -88,7 +86,6 @@ function getart() {
     fi
     
     log "album $albumhash not found in cover art directory, attempting to fetch musicbrainz copy"
-    rgmbid="$(mediainfo "$currentsong" | grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
     if ! [ -z $rgmbid ]; then
         log "musicbrainz release group found"
         arturl="$(curl -Ls coverartarchive.org/release-group/$rgmbid | grep -oP "(?<=small\":\").*250.jpg" | cut -d \" -f1)"
@@ -112,6 +109,17 @@ function getart() {
     fi
 
     echo "$noart"
+}
+
+function getinfo() {
+    currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
+    info="$(mediainfo "$currentsong")"
+
+    currentalbum="$(echo "$info" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
+    currentperformer="$(echo "$info" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
+    rgmbid="$(echo "$info" | grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
+    
+    albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
 }
 
 function log() {
@@ -155,9 +163,9 @@ shift $(($OPTIND-1))
 
 trap quit SIGINT SIGTERM
 while true :; do
-
-    currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
-    currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
+    
+    # refresh song information variables
+    getinfo
 
     if ! [ "$currentalbum" = "$lastalbum" ]; then
         getart
@@ -174,6 +182,7 @@ while true :; do
 
     lastalbum="$currentalbum"
     lastsong="$currentsong"
+
     mpc idle player >/dev/null
 
 done | meh -ctl
