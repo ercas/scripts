@@ -65,6 +65,55 @@ function ffmpeg-addart() {
     -metadata:s:v title="Cover art" -loglevel quiet "$3"
 }
 
+function getart() {
+    rm -f $tempfile
+    tempfile=$(mktemp -u /tmp/albumart-XXXXX)
+    
+    ffmpeg -i "$currentsong" -loglevel quiet $tempfile.jpg
+    mv $tempfile.jpg $tempfile 2>/dev/null
+    if [ -f $tempfile ]; then
+        log "using embedded cover art"
+        echo $tempfile
+        return
+    fi
+    
+    log "no embedded cover art, attempting to search in cover art directory"
+    currentperformer="$(mediainfo "$currentsong" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
+    albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
+    if [ -f "$artdir/$albumhash" ]; then
+        log "using album art from cover art directory"
+        cp "$artdir/$albumhash" $tempfile
+        echo $tempfile
+        return
+    fi
+    
+    log "album $albumhash not found in cover art directory, attempting to fetch musicbrainz copy"
+    rgmbid="$(mediainfo "$currentsong" | grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
+    if ! [ -z $rgmbid ]; then
+        log "musicbrainz release group found"
+        arturl="$(curl -Ls coverartarchive.org/release-group/$rgmbid | grep -oP "(?<=small\":\").*250.jpg" | cut -d \" -f1)"
+        if ! [ -z $arturl ]; then
+            log "cover art url found, downloading image"
+            tempfile=$(mktemp -u /tmp/albumart-XXXXX)
+            curl -Lso $tempfile $arturl
+            if [ -f $tempfile ]; then
+                echo $tempfile
+                if [ -d "$artdir" ]; then
+                    log "copying album art to cover art directory"
+                    cp $tempfile "$artdir/$albumhash"
+                fi
+                return
+            else
+                log "could not download image"
+            fi
+        else
+            log "musicbrainz release group found but no art to fetch"
+        fi
+    fi
+
+    echo "$noart"
+}
+
 function log() {
     $verbose && echo $@ >&2
 }
@@ -106,57 +155,14 @@ shift $(($OPTIND-1))
 
 trap quit SIGINT SIGTERM
 while true :; do
+
     currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
     currentalbum="$(mediainfo "$currentsong" | grep Album\ \ | cut -d ":" -f2 | tail -c +2)"
+
     if ! [ "$currentalbum" = "$lastalbum" ]; then
-        rm -f $tempfile
-        tempfile=$(mktemp -u /tmp/albumart-XXXXX)
-        
-        ffmpeg -i "$currentsong" -loglevel quiet $tempfile.jpg
-        mv $tempfile.jpg $tempfile 2>/dev/null
-        if [ -f $tempfile ]; then
-            log "using embedded cover art"
-            echo $tempfile
-        else
-            log "no embedded cover art, attempting to search in cover art directory"
-            currentperformer="$(mediainfo "$currentsong" | grep Performer\ \ | head -n 1 | cut -d ":" -f2 | tail -c +2)"
-            albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
-            if [ -f "$artdir/$albumhash" ]; then
-                log "using album art from cover art directory"
-                cp "$artdir/$albumhash" $tempfile
-                echo $tempfile
-            else
-                log "album $albumhash not found in cover art directory, attemtping to fetch musicbrainz copy"
-                rgmbid="$(mediainfo "$currentsong" | grep MusicBrainz\ Release\ Group\ Id | awk '{printf $6}')"
-                if ! [ -z $rgmbid ]; then
-                    log "musicbrainz release group found"
-                    arturl="$(curl -Ls coverartarchive.org/release-group/$rgmbid | grep -oP "(?<=small\":\").*250.jpg" | cut -d \" -f1)"
-                    if ! [ -z $arturl ]; then
-                        log "cover art url found, downloading image"
-                        tempfile=$(mktemp -u /tmp/albumart-XXXXX)
-                        curl -Lso $tempfile $arturl
-                        if [ -f $tempfile ]; then
-                            echo $tempfile
-                            if [ -d "$artdir" ]; then
-                                log "copying album art to cover art directory"
-                                cp $tempfile "$artdir/$albumhash"
-                            fi
-                        else
-                            log "could not download image"
-                            echo $noart
-                        fi
-                    else
-                        log "musicbrainz release group found but no art to fetch"
-                        echo "$noart"
-                    fi
-                else
-                    log "no musicbrainz release group found"
-                    echo "$noart"
-                fi
-            fi
-        fi
-        
+        getart
     fi
+
     # disabled for now
     if ! [ "$currentsong" = "$lastsong" ] && $addart && [ -f $tempfile ]\
         && [ -z "$(mediainfo "$currentsong" | grep Cover\ \ .*\ Yes)" ]; then
@@ -165,7 +171,9 @@ while true :; do
         ffmpeg-addart "$currentsong" $tempfile "$tempmusicfile"
         mv "$tempmusicfile" "$currentsong"
     fi
+
     lastalbum="$currentalbum"
     lastsong="$currentsong"
     mpc idle player >/dev/null
+
 done | meh -ctl

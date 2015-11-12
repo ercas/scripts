@@ -9,6 +9,8 @@
 # 
 # to use, pipe text to this script and follow the instructions to select text.
 # this text is automatically copied to the clipboard using xclip.
+# 
+# see also: moreutils https://joeyh.name/code/moreutils/
 
 import curses, getopt, os, signal, subprocess, sys
 

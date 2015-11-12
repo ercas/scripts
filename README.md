@@ -22,7 +22,7 @@ scripts
 
 * trim.c - an interactive "cut". not exactly a "script" but didn't warrant a new repository. precursor to trim.py; will probably be removed in the future.
 
-* trim.py - an interactive "cut". reads text from stdin and allows the user select what will be copied or printed to stdout via an ncurses interface.
+* trim.py - an interactive "cut". reads text from stdin and allows the user select what will be copied or printed to stdout via an ncurses interface. you should probably use vipe from [moreutils](https://joeyh.name/code/moreutils/) instead.
 
 * wplatestgoes.sh - a script to fetch the two latest images from the noaa environmental visualization laboratory's daily repository (ftp://ftp.nnvl.noaa.gov/View/GOES/), create transition images between them, and set the wallpaper to one of the images every hour, progressing from the second latest image to the latest image.
 ![demo image](wplatestgoes-demo.gif)
