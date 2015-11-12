@@ -41,7 +41,7 @@ verbose=false
 
 currentsong=
 currentalbum=
-currentperformat=
+currentperformer=
 rgmbid="empty"
 lastalbum="empty"
 lastsong="empty"
