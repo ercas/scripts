@@ -135,23 +135,23 @@ function quit() {
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-hv] [-a artdir] [-d musicdir] [-u albumart]
-       -a artdir      specify what directory to store album art in
+usage: $(basename "$0") [-hv] [-a artdir] [-d musicdir] [-u albumart]
+       -a artdir      specify what directory to cache album art in
+       -c albumart    cache the specified albumart. -a must be specified before
+                      using this. embedded art will still have priority over
+                      cached art.
        -d musicdir    specify what directory mpd looks in for music
        -h             display this message and exit
-       -u albumart    put the specified album art in the cover art directory for
-                      the current album. embedded art still has priority over
-                      this. -a must be specified before using this option.
-       -v             verbose mode
+       -v             verbose mode; log activity to stderr
 EOF
 }
 
-while getopts ":a:d:h:u:v" opt; do
+while getopts ":a:c:d:hv" opt; do
     case $opt in
         a) artdir="$OPTARG" ;;
+        c) addart "$OPTARG"; exit 0 ;;
         d) musicdir="$OPTARG" ;;
         h) usage; exit 0 ;;
-        u) addart "$OPTARG"; exit 0 ;;
         v) verbose=true ;;
         ?) usage; exit 1 ;;
     esac
