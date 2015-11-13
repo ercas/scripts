@@ -53,7 +53,17 @@ musicdir="$(readlink -f "$musicdir")"
 ########## functions
 
 # accepts either a url or a path to an image file
+# returns 1 if the given url or path is invalid
 function cacheart() {
+    if ! [ -d "$artdir" ]; then
+        if [ -z "$artdir" ]; then
+            log "no art cache directory specified. not caching art."
+        else
+            log "\"$artdir\" is not a valid directory. not caching art."
+        fi
+        return 1
+    fi
+    
     tempart=$(mktemp -u /tmp/albumart-XXXXX)
     
     if echo "$1" | grep -q ^http; then
@@ -62,15 +72,18 @@ function cacheart() {
         if [ -f "$1" ]; then
             cp "$1" $tempart
         else
-            echo "\"$1\" does not exist." && exit 1
+            log "\"$1\" does not exist."
+            return 1
         fi
     fi
     
     if file $tempart | grep -q "image data"; then
         getinfo
-        cp -v $tempart "$artdir/$albumhash"
+        cp $tempart "$artdir/$albumhash"
+        log "cached \"$1\" to \"$artdir/$albumhash\""
     else
-        echo "\"$1\" is not a valid image." && exit 1
+        log "\"$1\" is not a valid image."
+        return 1
     fi
 
     rm $tempart
@@ -85,6 +98,7 @@ function getart() {
     rm -f $tempfile
     tempfile=$(mktemp -u /tmp/albumart-XXXXX)
     
+    log "attempting to use embedded cover art"
     ffmpeg -i "$currentsong" -loglevel quiet $tempfile.jpg
     mv $tempfile.jpg $tempfile 2>/dev/null
     if [ -f $tempfile ]; then
@@ -93,7 +107,7 @@ function getart() {
         return
     fi
     
-    log "no embedded cover art, attempting to search in cover art directory"
+    log "attempting to search in cover art directory"
     if [ -f "$artdir/$albumhash" ]; then
         log "using album art from cover art directory"
         cp "$artdir/$albumhash" $tempfile
@@ -101,29 +115,43 @@ function getart() {
         return
     fi
     
-    log "album $albumhash not found in cover art directory, attempting to fetch musicbrainz copy"
+    log "** switching to internet sources **"
+    
+    log "attempting to fetch musicbrainz copy"
     if ! [ -z $rgmbid ]; then
-        log "musicbrainz release group found"
+        log "-> musicbrainz release group tag found"
         arturl="$(curl -Ls coverartarchive.org/release-group/$rgmbid | grep -oP "(?<=small\":\").*250.jpg" | cut -d \" -f1)"
         if ! [ -z $arturl ]; then
-            log "cover art url found, downloading image"
+            log "-> cover art url found, downloading image"
             tempfile=$(mktemp -u /tmp/albumart-XXXXX)
             curl -Lso $tempfile $arturl
             if [ -f $tempfile ]; then
                 echo $tempfile
-                if [ -d "$artdir" ]; then
-                    log "copying album art to cover art directory"
-                    cp $tempfile "$artdir/$albumhash"
-                fi
+                cacheart "$tempfile"
                 return
             else
-                log "could not download image"
+                log "-> could not download image"
             fi
         else
-            log "musicbrainz release group found but no art to fetch"
+            log "-> no art to fetch"
         fi
+    else
+        log "-> no musicbrainz release group tag found"
     fi
-
+    
+    log "attempting to fetch slothradio/amazon copy"
+    tempfile=$(mktemp -u /tmp/albumart-XXXXX)
+    curl -so $tempfile "$(curl -s "http://www.slothradio.com/covers/index.php?adv=&artist=$(echo "$currentperformer" | tr " " "+")&album=$(echo "$currentalbum" | tr " " "+")" | \
+        grep -o http://ecx.images-amazon.com.*jpg | head -n 1)"
+    if [ -f $tempfile ]; then
+        echo $tempfile
+        cacheart "$tempfile"
+        return
+    fi
+    
+    # add more cover art fetch attempts here
+    
+    log "could not fetch art"
     echo "$noart"
 }
 
@@ -139,7 +167,7 @@ function getinfo() {
 }
 
 function log() {
-    $verbose && echo $@ >&2
+    $verbose && echo "$@" >&2
 }
 
 function quit() {
@@ -166,7 +194,7 @@ EOF
 while getopts ":a:c:d:hv" opt; do
     case $opt in
         a) artdir="$OPTARG" ;;
-        c) cacheart "$OPTARG"; exit 0 ;;
+        c) verbose=true; cacheart "$OPTARG"; exit 0 ;;
         d) musicdir="$OPTARG" ;;
         h) usage; exit 0 ;;
         v) verbose=true ;;
@@ -183,7 +211,10 @@ while true :; do
     
     # refresh song information variables
     getinfo
-
+    
+    log
+    log "new album: $currentalbum"
+    
     if ! [ "$currentalbum" = "$lastalbum" ]; then
         getart
     fi
