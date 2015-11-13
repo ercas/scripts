@@ -5,6 +5,7 @@
 # automatically fetch and display album art of mpd's currently playing song
 # 
 # process:
+# if -c is specified, cache the art and exit
 # if new album, look for embedded album art
 # ├─success: display embedded album art
 # └─fail: attempt to find album art in cover art directory (if specified)
@@ -17,14 +18,11 @@
 #     │ │ └─fail: display the "noart" image
 #     │ └─fail: display the "noart" image
 #     └─fail: display the "noart" image
-# if new song and if the -A option is used, write the cover art, if any, to the 
-# music file
 # 
-# be polite to the people at musicbrainz and the internet archive! write cover
-# art to your music files with -A or specify a directory to cache cover art in
-# with -a if you don't like storing images in your music files (i personally
-# don't). this will limit the load on the coverartarchive.org servers. you can
-# also specify both, of course.
+# be polite to the people at musicbrainz and the internet archive! specify a
+# directory to cache cover art in with -a if you don't like storing images in
+# your music files (i personally don't). this will limit the load on the
+# coverartarchive.org servers and make art load faster.
 # 
 # temporary files will be stored as /tmp/albumart-*
 # 
@@ -54,10 +52,28 @@ musicdir="$(readlink -f "$musicdir")"
 
 ########## functions
 
-function addart() {
-    ! [ -f "$1" ] && echo "\"$1\" does not exist." && exit 1
-    albumhash="$(echo "$currentperformer - $currentalbum" | md5sum | awk '{printf $1}')"
-    cp -v "$1" "$artdir/$albumhash"
+# accepts either a url or a path to an image file
+function cacheart() {
+    tempart=$(mktemp -u /tmp/albumart-XXXXX)
+    
+    if echo "$1" | grep -q ^http; then
+        curl -o $tempart "$1"
+    else
+        if [ -f "$1" ]; then
+            cp "$1" $tempart
+        else
+            echo "\"$1\" does not exist." && exit 1
+        fi
+    fi
+    
+    if file $tempart | grep -q "image data"; then
+        getinfo
+        cp -v $tempart "$artdir/$albumhash"
+    else
+        echo "\"$1\" is not a valid image." && exit 1
+    fi
+
+    rm $tempart
 }
 
 function ffmpeg-addart() {
@@ -139,7 +155,8 @@ usage: $(basename "$0") [-hv] [-a artdir] [-d musicdir] [-u albumart]
        -a artdir      specify what directory to cache album art in
        -c albumart    cache the specified albumart. -a must be specified before
                       using this. embedded art will still have priority over
-                      cached art.
+                      cached art. albumart can either be a path to an image
+                      file or the url of one.
        -d musicdir    specify what directory mpd looks in for music
        -h             display this message and exit
        -v             verbose mode; log activity to stderr
@@ -149,7 +166,7 @@ EOF
 while getopts ":a:c:d:hv" opt; do
     case $opt in
         a) artdir="$OPTARG" ;;
-        c) addart "$OPTARG"; exit 0 ;;
+        c) cacheart "$OPTARG"; exit 0 ;;
         d) musicdir="$OPTARG" ;;
         h) usage; exit 0 ;;
         v) verbose=true ;;
