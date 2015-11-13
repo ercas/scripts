@@ -5,19 +5,14 @@
 # automatically fetch and display album art of mpd's currently playing song
 # 
 # process:
-# if -c is specified, cache the art and exit
-# if new album, look for embedded album art
-# ├─success: display embedded album art
-# └─fail: attempt to find album art in cover art directory (if specified)
-#   ├─success: display album art from cover art directory
-#   └─fail: look for musicbrainz release group tag
-#     ├─success: attempt to get the url for the "small" image
-#     │ ├─success: attempt to download the "small" image
-#     │ │ ├─success: display the "small" image
-#     │ │ │ └─if cover art directory is specified, copy the image to it
-#     │ │ └─fail: display the "noart" image
-#     │ └─fail: display the "noart" image
-#     └─fail: display the "noart" image
+# if -a and -c are specified, cache the art and exit
+# for every new album that plays, attempt to load the cover art from:
+# * embedded art in the music files
+# * art cached my mpdalbumart.sh
+# * musicbrainz/coverart.org cover art archive
+# * slothradio/amazon
+# if nothing is found, display mpdalbumart-noart.png
+# if something is found and -a is specified, cache the art
 # 
 # be polite to the people at musicbrainz and the internet archive! specify a
 # directory to cache cover art in with -a if you don't like storing images in

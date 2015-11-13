@@ -10,7 +10,11 @@ scripts
 -------
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
-* mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/)
+* mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
+  * embedded art in the music files
+  * art cached my mpdalbumart.sh
+  * musicbrainz/coverart.org cover art archive
+  * slothradio/amazon
 
 * qemuboot.sh - small script to manage qemu virtual machines
 
