@@ -8,6 +8,9 @@ directories
 
 scripts
 -------
+* i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
+![demo image](i3-locker-demo.png)
+
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
