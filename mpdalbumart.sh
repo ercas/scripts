@@ -9,7 +9,7 @@
 # for every new album that plays, attempt to load the cover art from:
 # * embedded art in the music files
 # * art cached my mpdalbumart.sh
-# * musicbrainz/coverart.org cover art archive
+# * musicbrainz/archive.org cover art archive
 # * slothradio/amazon
 # if nothing is found, display mpdalbumart-noart.png
 # if something is found and -a is specified, cache the art
@@ -84,11 +84,15 @@ function cacheart() {
     rm $tempart
 }
 
+# add art to an mp3 file
+# currently broken
 function ffmpeg-addart() {
     ffmpeg -i "$1" -i "$2" -map 0:0 -map 1:0 -c copy \
     -metadata:s:v title="Cover art" -loglevel quiet "$3"
 }
 
+# main function to try to get art to display
+# handlers are separated by empty lines and return if successful
 function getart() {
     rm -f $tempfile
     tempfile=$(mktemp -u /tmp/albumart-XXXXX)
@@ -150,6 +154,7 @@ function getart() {
     echo "$noart"
 }
 
+# update global variables for song information
 function getinfo() {
     currentsong="$musicdir/$(mpc -f %file% | head -n 1)"
     info="$(mediainfo "$currentsong")"
