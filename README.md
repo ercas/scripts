@@ -16,7 +16,7 @@ scripts
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
   * embedded art in the music files
   * art cached my mpdalbumart.sh
-  * musicbrainz/coverart.org cover art archive
+  * musicbrainz/archive.org cover art archive
   * slothradio/amazon
 
 * qemuboot.sh - small script to manage qemu virtual machines
@@ -31,9 +31,6 @@ scripts
 
 * trim.py - an interactive "cut". reads text from stdin and allows the user select what will be copied or printed to stdout via an ncurses interface. you should probably use vipe from [moreutils](https://joeyh.name/code/moreutils/) instead.
 
-* wplatestgoes.sh - a script to fetch the two latest images from the noaa environmental visualization laboratory's daily repository (ftp://ftp.nnvl.noaa.gov/View/GOES/), create transition images between them, and set the wallpaper to one of the images every hour, progressing from the second latest image to the latest image.
-![demo image](wplatestgoes-demo.gif)
-
 * weather.sh - get the current weather from http://openweathermap.org
 
         $ ./weather.sh -m 2174003
@@ -45,3 +42,8 @@ scripts
         Wind:         2.6mph @ 200°
         Sunrise:      03:55:53 PM
         Sunset:       03:36:56 AM
+
+* workaholic.sh - keep your cpu busy when you're away by queueing cpu/io intensive tasks that would otherwise bottleneck resources and slow down your workflow. running tasks are paused when you return and resume when you leave again.
+
+* wplatestgoes.sh - a script to fetch the two latest images from the noaa environmental visualization laboratory's daily repository (ftp://ftp.nnvl.noaa.gov/View/GOES/), create transition images between them, and set the wallpaper to one of the images every hour, progressing from the second latest image to the latest image.
+![demo image](wplatestgoes-demo.gif)
