@@ -27,31 +27,74 @@
 #    pids: https://unix.stackexchange.com/questions/90244/bash-run-command-in-background-and-capture-pid
 
 # TODO
-# * have the control loop automatically start/stop commands based on user idle
-#   status
+# * possibly reorganize the options so the script is less confusing to use
+# * cleanup function that runs when the script exits (kill running commands)
+# * better documentation
+# * ability to abort commands by removing the command files from $queuedir
+#   (the control loop should detect these removals and kill those commands)
+# * finish misc TODO comments littered around
 
 this="$(basename "$0")"
 
 idle=/usr/bin/xprintidle
 queuedir=/tmp/workaholic
-sleeptime=5
+sleeptime=2
 idletime=600
+
+runningpid=
+currentidle=
+currentcommand=
+currentstatus=
 
 mkdir -p "$queuedir"
 
 ########## parse options
 
+# TODO: -d may be compatible with options to toggle idle time, queue dir, and
+# sleep time in the future, so the usage section should probably be split into
+# control loop configuration and queue dir management sections
+
 function usage() {
     cat << EOF
-usage: $this [-dhq] [-a command] [-r id]
-       -a command    add the specified command to the queue
+ABOUT
+$this is a daemon and collection of interfaces to that daemon that
+manages the automatic starting up and pausing of commands based on user idle
+time. the purpose of this is to allow the computer to remain productive doing
+io/cpu intensive tasks while the user is away, but not keep the user from
+being productive by pausing and deferring these tasks to when the user isn't
+away. this is similar to the concept of folding@home, which uses idle cpu time
+to fold proteins for science.
+
+USAGE
+this script runs in two different modes. the first mode is to run as the
+control loop, which is the main function of the script and is responsible for
+automatically starting/resuming commands when the user is idle and pausing
+commands when the user is no longer idle. this mode can either be run inside
+the current terminal for debugging purposes or can be run as a daemon.
+
+the second mode is to interface with the control loop by adding, removing, and
+querying queued commands. this is essentially a frontend for management of the
+\$queuedir directory. to use the second mode, an option MUST be specified; if
+the script is run without any options, it will run in the first mode.
+
+CONTROL LOOP
+usage: $this [-d]
        -d            run the control loop as a daemon
+       
+INTERFACE TO CONTROL LOOP
+usage: $this -h|-q|-a command|-r id
+       -a command    add the specified command to the queue. the command can
+                     either be an entire command or the path to a script.
        -h            display this message and exit
        -q            view the current queue
        -r id         remove the command with the given id from the queue
-running this script with no arguments will have the control loop run in the
-current terminal session, useful for debugging purposes. running this script
-with any arguments will pass information to or start the control loop and exit.
+remember that one of these options MUST be used and running $this
+without any options will have it start the control loop in the current terminal
+
+EXAMPLE USAGE
+$ $this -d                       # start up the control loop daemon
+$ $this -a ffmpeg -i in out      # queue an ffmpeg command
+$ $this -q                       # view the status of the queue
 EOF
 }
 
@@ -101,28 +144,80 @@ if ! [ "$1" = "nocheckduplicate" ]; then
     fi
 fi
 
-[ -z "$@" ] && cat << EOF
+[ -z "$@" ] && cat << EOF && sleep 5
 no arguments have been specified; $this control loop will be run in the
 current terminal session. if you meant to run this as a daemon, specify -d. for
 more information, see $this -h.
 
+starting in 5 seconds...
 EOF
+
+########## functions
+
+# start up the specified command file in $queuedir
+function startcommand() {
+    if ! [ -z "$1" ]; then
+        bash "$1" &
+        runningpid=$!
+        if [ -z $runningpid ]; then
+            echo "failed to start command $(basename "$1")"
+            runningpid=
+        else
+            echo "started command $(basename "$1") (PID: $runningpid)"
+        fi
+    else
+        echo "nothing to run"
+    fi
+}
 
 ########## control loop
 
 echo "starting $this"
 
 while true :; do
-    echo "idle time: $($idle) ms"
+    currentidle=$($idle)
+    echo "idle time: $currentidle  ms"
     
-    # TODO: code to start new commands
+    # start up or resume commands if the user is idle
+    if [ $currentidle -gt $idletime ]; then
+        
+        # if nothing is currently running, attempt to start a new command
+        if [ -z $runningpid ]; then
+            # run the first command from the sorted queued commands list
+            currentcommand="$(find $queuedir -type f -not -path $queuedir/logfile | sort -V | head -n 1)"
+            startcommand "$currentcommand"
+        else
+             echo "waiting for command $(basename "$currentcommand")"
+             kill -CONT $runningpid
+        fi
+        currentstatus=running
+
+    # pause running commands if the user returns
+    elif ! [ -z $runningpid ]; then
+        echo "paused $runningpid"
+        kill -STOP $runningpid
+        currentstatus=paused
+    fi
+    echo
+    
+    # remove completed commands
+    if ! [ -z $runningpid ]; then
+        if [ -z "$(ps -p $runningpid | sed -n 2p)" ]; then
+            echo "current job finished"
+            runningpid=
+            rm "$currentcommand"
+        fi
+    fi
     
     # log file maintenance, read all of the queued commands
     echo "ID        STATUS        COMMAND" > $queuedir/logfile
     for f in $queuedir/*; do
-        # TODO: set status to "running" for running jobs
         status=queued
+        if [ "$currentcommand" = "$f" ]; then
+            status=$currentstatus
+        fi
         if ! [ "$f" = $queuedir/logfile ]; then
+            # TODO: pretty formatting with printf
             echo -e "$(basename "$f")        $status        $(cat "$f" | tr "\n" " ")"
         fi 
     done >> $queuedir/logfile
