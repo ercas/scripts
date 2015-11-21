@@ -28,6 +28,7 @@
 
 # TODO
 # * possibly reorganize the options so the script is less confusing to use
+# * allow the user to specify sleeptime and idletime
 # * cleanup function that runs when the script exits (kill running commands)
 # * better documentation
 # * ability to abort commands by removing the command files from $queuedir
@@ -39,7 +40,7 @@ this="$(basename "$0")"
 idle=/usr/bin/xprintidle
 queuedir=/tmp/workaholic
 sleeptime=2
-idletime=600
+idletime=2000
 
 runningpid=
 currentidle=
@@ -188,14 +189,14 @@ while true :; do
             startcommand "$currentcommand"
         else
              echo "waiting for command $(basename "$currentcommand")"
-             kill -CONT $runningpid
+             pkill -CONT -P $runningpid
         fi
         currentstatus=running
 
     # pause running commands if the user returns
     elif ! [ -z $runningpid ]; then
         echo "paused $runningpid"
-        kill -STOP $runningpid
+        pkill -STOP -P $runningpid
         currentstatus=paused
     fi
     echo
