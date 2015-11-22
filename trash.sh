@@ -55,7 +55,6 @@ function empty() {
     else
         # empty local trash
         cd $trashdir/files/ && remove *
-        cd $trashdir/info/ && rm * 2>/dev/null
         $verbose && echo "emptied local trash"
 
         # empty trash for mounted volumes
@@ -64,7 +63,6 @@ function empty() {
         if ! [ -z $media ]; then
             for volume in $media/*; do
                 cd "$volume/.Trash-1000/files" && remove *
-                cd "$volume/.Trash-1000/info" && rm * 2>/dev/null
                 $verbose && echo "emptied the trash for $volume"
             done
         else
@@ -73,12 +71,13 @@ function empty() {
     fi
 }
 
+# this should be run from within $XDG_DATA_HOME/Trash or a .Trash-1000 directory
 function remove() {
     [ "$@" = "*" ] && return
     for f in "$@"; do
         if [ -e "$f" ]; then
             rm -rf $($verbose && echo "-v") "$f"
-            rm -f "$f.trashinfo"
+            rm -f "../info/$f.trashinfo"
         else
             echo "$f not found in the trash. use $(basename $0) -l to see all of the files in the trash."
         fi
@@ -143,7 +142,7 @@ EOF
 while getopts ":Dd:hlLm:nRr:v" opt; do
     case $opt in
         D) empty; exit 0 ;;
-        d) remove "$OPTARG" ;;
+        d) cd $trashdir/files/; remove "$OPTARG" ;;
         h) usage; exit 0 ;;
         l) ls -a --ignore="\." --ignore="\.\." $trashdir/files; exit 0 ;;
         L) cd $trashdir/files; du -s *; exit 0 ;;
