@@ -1,12 +1,23 @@
 #!/bin/bash
-# CLI for managing the trashbin
+# tool for managing the trashbin
+# 
+# originally a wrapper for gvfs-trash but can now function independent of it
+# thanks to lizardthunder (https://github.com/lizardthunder). to use without
+# gvfs-trash, specify -n.
+
+# FIXME: trashing files on other volumes without gvfs-trash moves them to the
+# local trash directory. they should be moved to the .Trash-1000 directory on
+# the volume that they reside on.
 
 ########## defaults
 
 shopt -s dotglob
 verbose=false
+usegvfs=true
 trashdir="$([ -z "$XDG_DATA_HOME" ] && echo $HOME/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
+
+mkdir -p $trashdir/{files,info,expunged}
 
 ########## helper functions
 
@@ -22,7 +33,7 @@ function trash() {
     path="$(readlink -f $1)"
     num=1
     while true; do
-        if ls $trashdir/files | grep -q $file; then # file with the same name is already in the trash
+        if [ -f "$trashdir/files/$file" ]; then
             file="$1.$num"
             num=$((num + 1))
         else
@@ -30,30 +41,48 @@ function trash() {
         fi
     done
     mv "$1" "$trashdir/files/$file"
-    touch "$trashdir/info/$file.trashinfo"
     cat <<EOF > "$trashdir/info/$file.trashinfo"
+[Trash Info]
 Path=$path
 DeletionDate="$(date +%FT%T)"
 EOF
 }
 
 function empty() {
-    for file in $(ls -a $trashdir/files); do
-        if [ "$file" == "." ] || [ "$file" == ".." ]; then
-            continue
+    if $usegvfs; then
+        gvfs-trash --empty
+        $verbose && echo "emptied the trash for all mounted volumes"
+    else
+        # empty local trash
+        cd $trashdir/files/ && remove *
+        cd $trashdir/info/ && rm * 2>/dev/null
+        $verbose && echo "emptied local trash"
+
+        # empty trash for mounted volumes
+        media=$([ -d /media/ ] && echo /media/$USER || \
+            [ -d /run/media/ ] && echo /run/media/$USER)
+        if ! [ -z $media ]; then
+            for volume in $media/*; do
+                cd "$volume/.Trash-1000/files" && remove *
+                cd "$volume/.Trash-1000/info" && rm * 2>/dev/null
+                $verbose && echo "emptied the trash for $volume"
+            done
+        else
+            $verbose && echo "could not find media/ directory"
         fi
-        remove $file
-    done
-    $verbose && echo "emptied the trash for all mounted volumes"
+    fi
 }
 
 function remove() {
-    if [ -e "$trashdir/files/$1" ]; then
-        rm -rf $($verbose && echo "-v") "$trashdir/files/$1"
-        rm -f "$trashdir/info/$1.trashinfo"
-    else
-        echo "$1 not found in the trash. use $(basename $0) -l to see all of the files in the trash."
-    fi
+    [ "$@" = "*" ] && return
+    for f in "$@"; do
+        if [ -e "$f" ]; then
+            rm -rf $($verbose && echo "-v") "$f"
+            rm -f "$f.trashinfo"
+        else
+            echo "$f not found in the trash. use $(basename $0) -l to see all of the files in the trash."
+        fi
+    done
 }
 
 function restore() {
@@ -87,7 +116,7 @@ function usevolume() {
 
 function usage() {
     cat <<EOF
-usage: $(basename $0) [-v] [-DhlLR] [-d trashedfile] [-m mountpoint]
+usage: $(basename $0) [-v] [-DghlLR] [-d trashedfile] [-m mountpoint]
        [-r trashedfile] [filestotrash]
        -D                delete all files/empty the trash on all volumes
        -d trashedfile    delete/remove the specified file from the trash
@@ -95,6 +124,7 @@ usage: $(basename $0) [-v] [-DhlLR] [-d trashedfile] [-m mountpoint]
        -l                list files in the trash
        -L                list files in the trash with du in order to see sizes
        -m mountpoint     manipulate the trash on the specified volume
+       -n                don't use gvfs-trash as the backend
        -R                restore all files from the trash
        -r trashedfile    restore the specified file from the trash
        -v                verbose mode
@@ -110,7 +140,7 @@ the trash on an external drive, put -m before -l/-L.
 EOF
 }
 
-while getopts ":Dd:hlLm:Rr:v" opt; do
+while getopts ":Dd:hlLm:nRr:v" opt; do
     case $opt in
         D) empty; exit 0 ;;
         d) remove "$OPTARG" ;;
@@ -118,6 +148,7 @@ while getopts ":Dd:hlLm:Rr:v" opt; do
         l) ls -a --ignore="\." --ignore="\.\." $trashdir/files; exit 0 ;;
         L) cd $trashdir/files; du -s *; exit 0 ;;
         m) usevolume "$OPTARG" ;;
+        n) usegvfs=false ;;
         r) restore "$OPTARG" ;;
         R) restoreall; exit 0 ;;
         v) verbose=true ;;
@@ -131,7 +162,7 @@ shift $((OPTIND-1))
 
 for f in "$@"; do
     if [ -e "$f" ]; then
-        trash "$f"
+        $usegvfs && gvfs-trash "$f" || trash "$f"
         $verbose && echo "trashed $f"
     else
         echo "$f does not exist"
