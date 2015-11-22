@@ -5,7 +5,7 @@
 
 shopt -s dotglob
 verbose=false
-trashdir="$([ -z "$XDG_DATA_HOME" ] && echo ~/.local/share || \
+trashdir="$([ -z "$XDG_DATA_HOME" ] && echo $HOME/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
 
 ########## helper functions
@@ -20,11 +20,20 @@ function urldecode() {
 function trash() {
     file="$1"
     path="$(readlink -f $1)"
-    mv "$file" "$trashdir/files/$file"
+    num=1
+    while true; do
+        if ls $trashdir/files | grep -q $file; then # file with the same name is already in the trash
+            file="$1.$num"
+            num=$((num + 1))
+        else
+            break
+        fi
+    done
+    mv "$1" "$trashdir/files/$file"
     touch "$trashdir/info/$file.trashinfo"
     cat <<EOF > "$trashdir/info/$file.trashinfo"
 Path=$path
-DeletionDate="$(date -d now +%FT%T)"
+DeletionDate="$(date +%FT%T)"
 EOF
 }
 
