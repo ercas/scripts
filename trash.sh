@@ -1,11 +1,11 @@
 #!/bin/bash
-# wrapper for gvfs-trash
+# CLI for managing the trashbin
 
 ########## defaults
 
 shopt -s dotglob
 verbose=false
-trashdir="$([ -z "$XDG_DATA_HOME" ] && echo ~/.local/share || \
+trashdir="$([ -z "$XDG_DATA_HOME" ] && echo $HOME/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
 
 ########## helper functions
@@ -17,8 +17,33 @@ function urldecode() {
 
 ########## functions
 
+function trash() {
+    file="$1"
+    path="$(readlink -f $1)"
+    num=1
+    while true; do
+        if ls $trashdir/files | grep -q $file; then # file with the same name is already in the trash
+            file="$1.$num"
+            num=$((num + 1))
+        else
+            break
+        fi
+    done
+    mv "$1" "$trashdir/files/$file"
+    touch "$trashdir/info/$file.trashinfo"
+    cat <<EOF > "$trashdir/info/$file.trashinfo"
+Path=$path
+DeletionDate="$(date +%FT%T)"
+EOF
+}
+
 function empty() {
-    gvfs-trash --empty
+    for file in $(ls -a $trashdir/files); do
+        if [ "$file" == "." ] || [ "$file" == ".." ]; then
+            continue
+        fi
+        remove $file
+    done
     $verbose && echo "emptied the trash for all mounted volumes"
 }
 
@@ -106,7 +131,7 @@ shift $((OPTIND-1))
 
 for f in "$@"; do
     if [ -e "$f" ]; then
-        gvfs-trash "$f"
+        trash "$f"
         $verbose && echo "trashed $f"
     else
         echo "$f does not exist"
