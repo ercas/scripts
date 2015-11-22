@@ -1,5 +1,5 @@
 #!/bin/bash
-# wrapper for gvfs-trash
+# CLI for managing the trashbin
 
 ########## defaults
 
@@ -17,8 +17,24 @@ function urldecode() {
 
 ########## functions
 
+function trash() {
+    file="$1"
+    path="$(readlink -f $1)"
+    mv "$file" "$trashdir/files/$file"
+    touch "$trashdir/info/$file.trashinfo"
+    cat <<EOF > "$trashdir/info/$file.trashinfo"
+Path=$path
+DeletionDate="$(date -d now +%FT%T)"
+EOF
+}
+
 function empty() {
-    gvfs-trash --empty
+    for file in $(ls -a $trashdir/files); do
+        if [ "$file" == "." ] || [ "$file" == ".." ]; then
+            continue
+        fi
+        remove $file
+    done
     $verbose && echo "emptied the trash for all mounted volumes"
 }
 
@@ -106,7 +122,7 @@ shift $((OPTIND-1))
 
 for f in "$@"; do
     if [ -e "$f" ]; then
-        gvfs-trash "$f"
+        trash "$f"
         $verbose && echo "trashed $f"
     else
         echo "$f does not exist"
