@@ -13,7 +13,7 @@
 
 shopt -s dotglob
 verbose=false
-usegvfs=true
+command -v gvfs-trash >dev/null && usegvfs=true || usegvfs=false
 trashdir="$([ -z "$XDG_DATA_HOME" ] && echo $HOME/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
 
