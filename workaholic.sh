@@ -40,7 +40,7 @@ this="$(basename "$0")"
 idle=/usr/bin/xprintidle
 queuedir=/tmp/workaholic
 sleeptime=2
-idletime=2000
+idletime=10000 # milliseconds
 
 runningpid=
 currentidle=
@@ -50,10 +50,6 @@ currentstatus=
 mkdir -p "$queuedir"
 
 ########## parse options
-
-# TODO: -d may be compatible with options to toggle idle time, queue dir, and
-# sleep time in the future, so the usage section should probably be split into
-# control loop configuration and queue dir management sections
 
 function usage() {
     cat << EOF
@@ -171,10 +167,43 @@ function startcommand() {
     fi
 }
 
+# update the log file with information
+function updatelog() {
+    # general queue information
+    echo "ID        STATUS        COMMAND" > $queuedir/logfile
+    for f in $queuedir/*; do
+        status=queued
+        # running command should be "running" or "paused"
+        if [ "$currentcommand" = "$f" ]; then
+            status=$currentstatus 
+        fi
+        if ! [ "$f" = $queuedir/logfile ]; then
+            # TODO: pretty formatting with printf
+            echo -e "$(basename "$f")        $status        $(cat "$f" | tr "\n" " ")"
+        fi 
+    done >> $queuedir/logfile
+
+    # information about the running command
+    if ! [ -z $runningpid ]; then
+        echo -e "\nparent pid: $runningpid\n"
+        pgrep -P $runningpid | xargs ps -o cmd,pid,vsize,rss,%mem,%cpu,size,time -p
+    else
+        echo -e "\nthere are no commands running."
+    fi >> $queuedir/logfile
+}
+
+# clean exit
+function quit() {
+    ! [ -z $runningpid ] && pkill -TERM -P $runningpid
+    echo "terminated running commands"
+    exit 0
+}
+
 ########## control loop
 
 echo "starting $this"
 
+trap quit SIGINT SIGTERM
 while true :; do
     currentidle=$($idle)
     echo "idle time: $currentidle  ms"
@@ -210,19 +239,7 @@ while true :; do
         fi
     fi
     
-    # log file maintenance, read all of the queued commands
-    echo "ID        STATUS        COMMAND" > $queuedir/logfile
-    for f in $queuedir/*; do
-        status=queued
-        if [ "$currentcommand" = "$f" ]; then
-            status=$currentstatus
-        fi
-        if ! [ "$f" = $queuedir/logfile ]; then
-            # TODO: pretty formatting with printf
-            echo -e "$(basename "$f")        $status        $(cat "$f" | tr "\n" " ")"
-        fi 
-    done >> $queuedir/logfile
-    # TODO: echo statistics for the running command (time, cpu/mem usage, etc)
+    updatelog
     
     sleep $sleeptime
 done
