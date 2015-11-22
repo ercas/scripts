@@ -5,15 +5,11 @@
 # thanks to lizardthunder (https://github.com/lizardthunder). to use without
 # gvfs-trash, specify -n.
 
-# FIXME: trashing files on other volumes without gvfs-trash moves them to the
-# local trash directory. they should be moved to the .Trash-1000 directory on
-# the volume that they reside on.
-
 ########## defaults
 
 shopt -s dotglob
 verbose=false
-command -v gvfs-trash >dev/null && usegvfs=true || usegvfs=false
+command -v gvfs-trash >/dev/null && usegvfs=true || usegvfs=false
 trashdir="$([ -z "$XDG_DATA_HOME" ] && echo $HOME/.local/share || \
             echo "$XDG_DATA_HOME")/Trash"
 
@@ -29,16 +25,22 @@ function urldecode() {
 ########## functions
 
 function trash() {
+    # if on an external volume, $trashdir should be that volume's /.Trash-1000
+    # only works with the .*/media/$USER scheme; manually mounted volumes are
+    # not yet supported (TODO)
+    origtrashdir="$trashdir" # $trashdir is modified, need to restore it later
+    d="$(dirname "$(readlink -f "$1")")"
+    if echo "$d" | grep -q "/media/$USER/"; then
+        trashdir="$(echo "$d/" | grep -oE ".*/media/$USER/.*?/")/.Trash-1000"
+    fi
+    
+    # trash the file
     file="$1"
     path="$(readlink -f $1)"
     num=1
-    while true; do
-        if [ -f "$trashdir/files/$file" ]; then
-            file="$1.$num"
-            num=$((num + 1))
-        else
-            break
-        fi
+    while [ -f "$trashdir/files/$file" ]; do
+        file="$1.$num"
+        num=$((num + 1))
     done
     mv "$1" "$trashdir/files/$file"
     cat <<EOF > "$trashdir/info/$file.trashinfo"
@@ -46,6 +48,7 @@ function trash() {
 Path=$path
 DeletionDate="$(date +%FT%T)"
 EOF
+    trashdir="$origtrashdir"
 }
 
 function empty() {
