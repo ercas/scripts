@@ -28,8 +28,8 @@
 
 # TODO
 # * possibly reorganize the options so the script is less confusing to use
+# * pause/resume grandchild processes
 # * allow the user to specify sleeptime and idletime
-# * cleanup function that runs when the script exits (kill running commands)
 # * better documentation
 # * ability to abort commands by removing the command files from $queuedir
 #   (the control loop should detect these removals and kill those commands)
@@ -83,14 +83,19 @@ usage: $this -h|-q|-a command|-r id
        -a command    add the specified command to the queue. the command can
                      either be an entire command or the path to a script.
        -h            display this message and exit
-       -q            view the current queue
+       -q            query the workaholic queue
        -r id         remove the command with the given id from the queue
 remember that one of these options MUST be used and running $this
 without any options will have it start the control loop in the current terminal
 
+CAVEATS
+* all scripts must be made to run without any user interaction
+* don't forget to source your .bashrc if you want to use its functions/alises
+
 EXAMPLE USAGE
 $ $this -d                       # start up the control loop daemon
-$ $this -a ffmpeg -i in out      # queue an ffmpeg command
+$ # queue an ffmpeg job. note that -y specified to disable user prompting.
+$ $this -a "ffmpeg -y -i in.mp4 out.mkv >/dev/null 2>/dev/null"
 $ $this -q                       # view the status of the queue
 EOF
 }
@@ -170,7 +175,7 @@ function startcommand() {
 # update the log file with information
 function updatelog() {
     # general queue information
-    echo "ID        STATUS        COMMAND" > $queuedir/logfile
+    printf "queue:\n%5s\t%8s\t%50s\n" ID STATUS COMMAND > $queuedir/logfile
     for f in $queuedir/*; do
         status=queued
         # running command should be "running" or "paused"
@@ -179,13 +184,14 @@ function updatelog() {
         fi
         if ! [ "$f" = $queuedir/logfile ]; then
             # TODO: pretty formatting with printf
-            echo -e "$(basename "$f")        $status        $(cat "$f" | tr "\n" " ")"
+            #echo -e "$(basename "$f")        $status        $(cat "$f" | tr "\n" " ")"
+            printf "%5s\t%8s\t%.50s\n" "$(basename "$f")" $status "$(cat "$f" | tr "\n" " ")"
         fi 
     done >> $queuedir/logfile
 
     # information about the running command
     if ! [ -z $runningpid ]; then
-        echo -e "\nparent pid: $runningpid\n"
+        echo -e "\nparent pid: $runningpid\n\nchild proccesses:"
         pgrep -P $runningpid | xargs ps -o cmd,pid,vsize,rss,%mem,%cpu,size,time -p
     else
         echo -e "\nthere are no commands running."

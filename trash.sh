@@ -25,13 +25,14 @@ function urldecode() {
 ########## functions
 
 function trash() {
-    # if on an external volume, $trashdir should be that volume's /.Trash-1000
+    # if on an external volume, $trashdir should be that volume's /.Trash-1000/
     # only works with the .*/media/$USER scheme; manually mounted volumes are
     # not yet supported (TODO)
     origtrashdir="$trashdir" # $trashdir is modified, need to restore it later
     d="$(dirname "$(readlink -f "$1")")"
     if echo "$d" | grep -q "/media/$USER/"; then
         trashdir="$(echo "$d/" | grep -oE ".*/media/$USER/.*?/")/.Trash-1000"
+        mkdir -p "$trashdir"/{files,info,expunged}
     fi
     
     # trash the file
@@ -48,6 +49,7 @@ function trash() {
 Path=$path
 DeletionDate="$(date +%FT%T)"
 EOF
+    
     trashdir="$origtrashdir"
 }
 
@@ -74,7 +76,9 @@ function empty() {
     fi
 }
 
-# this should be run from within $XDG_DATA_HOME/Trash or a .Trash-1000 directory
+# this should be run from within $XDG_DATA_HOME/Trash/files or a
+# .Trash-1000/files directory. the info/ directory is found by first navigating
+# to the parent of files/; this makes it easier to manage exteral volume trash
 function remove() {
     [ "$@" = "*" ] && return
     for f in "$@"; do
@@ -96,12 +100,6 @@ function restore() {
     else
         echo "$1 not found in the trash. use $(basename $0) -l to see all of the files in the trash."
     fi
-}
-
-function restoreall() {
-    for f in $trashdir/files/*; do
-        restore "$(basename "$f")"
-    done
 }
 
 function usevolume() {
@@ -152,7 +150,7 @@ while getopts ":Dd:hlLm:nRr:v" opt; do
         m) usevolume "$OPTARG" ;;
         n) usegvfs=false ;;
         r) restore "$OPTARG" ;;
-        R) restoreall; exit 0 ;;
+        R) for f in $trashdir/files/*; do restore "$(basename "$f")"; done; exit 0 ;;
         v) verbose=true ;;
         ?) usage; exit 1 ;;
     esac
