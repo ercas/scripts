@@ -29,7 +29,6 @@ function grab() {
     else
         echo $1 > $outdir/lastdl.conf
     fi
-    echo $title
 }
 
 mkdir -p $outdir

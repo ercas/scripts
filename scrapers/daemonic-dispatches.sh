@@ -1,6 +1,6 @@
 #!/bin/sh
 
-outdir=daemonic-dispatches
+outdir=$(dirname $0)
 mkdir -p $outdir
 
 function dlarticle() {
@@ -12,17 +12,18 @@ function dlarticle() {
     echo "downloaded $date - $title"
 }
 
-dlarticle http://www.daemonology.net/blog/2012-08-16-portifying-freebsd-ec2-startup-scripts.html
-dlarticle http://www.daemonology.net/blog/2014-02-16-FreeBSD-EC2-build.html
-dlarticle http://www.daemonology.net/blog/2012-01-16-automatically-populating-ssh-known-hosts.html
-dlarticle http://www.daemonology.net/blog/2011-03-22-FreeBSD-EC2-cluster-compute.html
-exit
-for year in $(seq 2005 $(date +%Y)); do
-    wget -qO - http://www.daemonology.net/blog/$year.html | \
-        grep -ozP "(?<=<div class=\"content\">)(.|\n)*(?=</div>)" | \
-        grep -oE "[0-9]+-[0-9]+-[0-9]+-.*.html" | \
-        while read article; do
-            dlarticle http://www.daemonology.net/blog/$article
-            sleep 0.5
-        done
-done
+if [ -z "$1" ]; then
+    echo "pulling entire blog in 5 seconds"
+    sleep 5
+    for year in $(seq 2005 $(date +%Y)); do
+        wget -qO - http://www.daemonology.net/blog/$year.html | \
+            grep -ozP "(?<=<div class=\"content\">)(.|\n)*(?=</div>)" | \
+            grep -oE "[0-9]+-[0-9]+-[0-9]+-.*.html" | \
+            while read article; do
+                dlarticle http://www.daemonology.net/blog/$article
+                sleep 0.5
+            done
+    done
+else
+    dlarticle "$1"
+fi
