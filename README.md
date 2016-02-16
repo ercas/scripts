@@ -25,6 +25,8 @@ scripts
 
 * sortbylinelength.sh - sort the specified file so that the longest lines are first (or last, if -r is specified)
 
+* sortimagesbyfx.sh - sort a directory of images according to a property of the images. for example: sort images according to increasing hue or increasing lightness
+
 * trash.sh - wrapper for gvfs-trash that allows for easy trash operations like listing and restoring trashed items from the command line
 
 * trim.c - an interactive "cut". not exactly a "script" but didn't warrant a new repository. precursor to trim.py; will probably be removed in the future.
