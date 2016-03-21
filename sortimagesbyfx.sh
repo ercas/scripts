@@ -1,9 +1,11 @@
 #!/usr/bin/bash
 
+this=$(basename "$0")
+
 fx=
+operation=
 input_dir=
 output_dir=
-this=$(basename "$0")
 
 ########## functions
 function error() {
@@ -30,8 +32,10 @@ $this uses the output from fx expressions to sort images. for example, if
 
 all fx values are averages of the pixels of an entire image.
 
-usage: $this [-h] [-o output_dir] fx input_dir
+usage: $this [-chm] [-o output_dir] fx input_dir
+       -c               copy files instead of creating soft links
        -h               display this message and exit
+       -m               move files instead of creating soft links
        -o output_dir    the directory to create links in. the path of this
                         directory cannot contain the "@" symbol. by default,
                         output_dir=\${input_dir}-\${fx}_sorted
@@ -48,9 +52,11 @@ EOF
 }
 
 ########## parse options
-while getopts ":ho:" opt; do
+while getopts ":chmo:" opt; do
     case $opt in
+        c) operation=cp ;;
         h) usage; exit 0 ;;
+        m) operation=mv ;;
         o) output_dir="$OPTARG" ;;
         ?) usage; exit 1 ;;
     esac
@@ -72,7 +78,7 @@ fi
 if [ -z "$1" ]; then
     error "no fx symbol provided"
 else
-    if ! grep -E "^(r|g|b|c|m|y|intensity|hue|saturation|lightness|luma)$" <<< "$1"; then
+    if ! grep -qE "^(r|g|b|c|m|y|intensity|hue|saturation|lightness|luma)$" <<< "$1"; then
         error "invalid fx symbol provided"
     else
         fx="$1"
@@ -106,6 +112,13 @@ sed -i \
     -e "s@%OUTPUT_DIR%@$output_dir@" \
     -e "s@%FX%@$fx@" \
     $tmp_script
+
+# change the operation if necessary
+if [ "$operation" = "cp" ]; then
+    sed -i "s/ln -sv/cp -nv/" $tmp_script
+elif [ "$operation" = "mv" ]; then
+    sed -i "s/ln -sv/mv -v/" $tmp_script
+fi
 
 chmod +x $tmp_script
 mkdir -p $output_dir
