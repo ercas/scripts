@@ -13,6 +13,6 @@
 
 docker run -d \
     -p 80:80 \
-    -v "$1":/var/www/localhost/htdocs/:ro \
+    -v "$(readlink -f "$1")":/var/www/localhost/htdocs/:ro \
     -v "$config":/etc/lighttpd/lighttpd.conf:ro \
     ercas/lighttpd-fastcgi-bash
