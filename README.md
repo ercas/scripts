@@ -13,6 +13,8 @@ scripts
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
+* email.sh - wrapper around the curl command for sending emails from the command line
+
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
   * embedded art in the music files
   * art cached my mpdalbumart.sh
