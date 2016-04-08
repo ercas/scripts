@@ -3,9 +3,9 @@
 # curl command is from https://stackoverflow.com/questions/14722556/using-curl-to-send-email/16069786#16069786
 ########## config
 
-# csv of smtp servers of email providers that will be automatically detected
+# csv of smtp servers of email providers that will be automatically detected.
 # i don't own accounts on most of these so i can't confirm if they work or not.
-# contributous are greatly appreciated!
+# contributions are greatly appreciated!
 smtp_server_list="\
 MATCH,SERVER
 gmail.com,smtps://smtp.gmail.com:465
@@ -18,13 +18,14 @@ yahoo.com,smtps://smtp.mail.yahoo.com:465
 
 ########## defaults
 
+body_file=
 from_address=
 from_name=
+password=
 to_address=
 to_name=
-subject="none"
-password=
 smtp_server=
+subject="none"
 
 ########## parse options
 
@@ -32,8 +33,12 @@ this=$(basename "$0")
 
 function usage() {
     cat <<EOF
-usage: $this [-h] [-e editor] [-f from_address] [-F from_name]
+usage: $this [-h] [-b body_file] [-e editor] [-f from_address] [-F from_name]
        [-m mail_file] [-p password] [-t to_address] [-S subject] [-T to_name]
+       -b body_file       use the contents of the specified plaintext body_file
+                          as the body of the message. if this is specified,
+                          then the email will be sent without opening a text
+                          editor to allow you to edit it.
        -e editor          use the specified editor to write mail (default is the
                           value of the \$EDITOR variable)
        -f from_address    account that email is being sent from
@@ -60,8 +65,14 @@ if you're typing it out.
 EOF
 }
 
-while getopts ":e:f:F:hps:S::t:T:" opt; do
+while getopts ":b:e:f:F:hps:S:t:T:" opt; do
     case $opt in
+        b) if [ -f "$OPTARG" ]; then
+               body_file="$OPTARG"
+           else
+               echo "error: $OPTARG is not a valid file"
+           fi
+           ;;
         e) EDITOR="$OPTARG" ;;
         f) from_address="$OPTARG" ;;
         F) from_name="$OPTARG" ;;
@@ -79,8 +90,8 @@ shift $((OPTIND-1))
 
 ########## fill in blank variables
 
-# prefer text based editors and lighter gui editors
-if [ -z "$EDITOR" ]; then
+# prefer terminal-based editors and lighter gui editors
+if [ -z "$EDITOR" ] && [ -z "$body_file" ]; then
     EDITOR=$(\
         command -v vim || \
         command -v emacs || \
@@ -125,7 +136,7 @@ fi
 
 ########## email
 
-mail_tmp=$(mktemp -u /tmp/sendmail-XXXXX)
+mail_tmp=$(mktemp -u /tmp/email-XXXXX)
 
 cat <<EOF > $mail_tmp
 From: "$from_name" <$from_address>
@@ -135,8 +146,15 @@ Subject: $subject
 
 EOF
 
-trap "rm -f $mail_tmp" SIGINT SIGTERM
-$EDITOR $mail_tmp
+trap "rm -f $mail_tmp; stty sane" SIGINT SIGTERM
+if [ -z "$body_file" ]; then
+    $EDITOR $mail_tmp
+else
+    mail_tmp_intermediate=$(mktemp -u /tmp/email-XXXXX)
+    head -n 4 $mail_tmp > $mail_tmp_intermediate
+    cat $mail_tmp_intermediate "$body_file" > $mail_tmp
+    rm $mail_tmp_intermediate
+fi
 
 curl \
     --url "$smtp_server" --ssl-reqd \
