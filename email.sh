@@ -65,7 +65,7 @@ if you're typing it out.
 EOF
 }
 
-while getopts ":b:e:f:F:hps:S:t:T:" opt; do
+while getopts ":b:e:f:F:hp:s:S:t:T:" opt; do
     case $opt in
         b) if [ -f "$OPTARG" ]; then
                body_file="$OPTARG"
