@@ -31,6 +31,7 @@ subject="none"
 
 confirm=false
 gpg_encrypt=false
+gpg_sign=false
 
 tempdir=$(mktemp -d /tmp/email-XXXXX)
 
@@ -50,7 +51,7 @@ this=$(basename "$0")
 
 function usage() {
     cat <<EOF
-usage: $this [-cgh] [-b body_file] [-e editor] [-f from_address]
+usage: $this [-cghG] [-b body_file] [-e editor] [-f from_address]
        [-F from_name] [-m mail_file] [-p password] [-t to_address] [-S subject]
        [-T to_name]
        -b body_file       use the contents of the specified plaintext body_file
@@ -65,6 +66,7 @@ usage: $this [-cgh] [-b body_file] [-e editor] [-f from_address]
                           the username of the specified account)
        -h                 display this message and exit
        -g                 encrypt the body of the message using gpg
+       -G                 sign the body of the message using gpg
        -p password        **DANGEROUS OPTION** use the given password to log in
                           to the from_address account
        -s smtp_server     use the specified smtp server. the format should be as
@@ -85,7 +87,7 @@ if you're typing it out.
 EOF
 }
 
-while getopts ":b:ce:f:F:ghp:s:S:t:T:" opt; do
+while getopts ":b:ce:f:F:gGhp:s:S:t:T:" opt; do
     case $opt in
         b) if [ -f "$OPTARG" ]; then
                body_file="$OPTARG"
@@ -98,6 +100,7 @@ while getopts ":b:ce:f:F:ghp:s:S:t:T:" opt; do
         f) from_address="$OPTARG" ;;
         F) from_name="$OPTARG" ;;
         g) gpg_encrypt=true ;;
+        G) gpg_sign=true ;;
         h) usage; exit 0 ;;
         p) password="$OPTARG" ;;
         s) smtp_server="$OPTARG" ;;
@@ -179,13 +182,22 @@ else
 fi
 
 # encrypt email
-if $gpg_encrypt; then
+if $gpg_encrypt || $gpg_sign; then
+    gpg_args=
+    if $gpg_encrypt && $gpg_sign; then
+        gpg_args="--local-user $from_address --sign --encrypt"
+    elif $gpg_encrypt; then
+        gpg_args="--encrypt"
+    elif $gpg_sign; then
+        gpg_args="--local-user $from_address --clearsign"
+    fi
+
     mail_tmp_header=$(tempfile)
     head -n 4 $mail_tmp > $mail_tmp_header
 
     mail_tmp_encrypted_body=$(tempfile)
     tail -n +6 $mail_tmp | \
-        gpg --armor --output - --encrypt --recipient $to_address \
+        gpg --armor --output - --recipient $to_address $gpg_args \
         > $mail_tmp_encrypted_body
 
     if [ $(du -b $mail_tmp_encrypted_body | awk '{print $1}') = 0 ]; then
@@ -198,11 +210,9 @@ fi
 
 # confirm before sending
 if $confirm; then
+    clear
     cat $mail_tmp
-    cat << EOF
-==========
-send email? (Y/n)
-EOF
+    echo -en "\n==========\nsend this email to $to_address? (Y/n) "
     read ans
     if [ "${ans,,}" = "n" ]; then
         echo "aborted email"
