@@ -27,24 +27,44 @@ to_name=
 smtp_server=
 subject="none"
 
+########## setup
+
+confirm=false
+gpg_encrypt=false
+
+tempdir=$(mktemp -d /tmp/email-XXXXX)
+
+function tempfile() {
+    mktemp -u $tempdir/XXXXX.tmp
+}
+
+function quit() {
+    rm -rf $tempdir
+    stty sane
+    exit $1
+}
+
 ########## parse options
 
 this=$(basename "$0")
 
 function usage() {
     cat <<EOF
-usage: $this [-h] [-b body_file] [-e editor] [-f from_address] [-F from_name]
-       [-m mail_file] [-p password] [-t to_address] [-S subject] [-T to_name]
+usage: $this [-cgh] [-b body_file] [-e editor] [-f from_address]
+       [-F from_name] [-m mail_file] [-p password] [-t to_address] [-S subject]
+       [-T to_name]
        -b body_file       use the contents of the specified plaintext body_file
                           as the body of the message. if this is specified,
                           then the email will be sent without opening a text
                           editor to allow you to edit it.
+       -c                 prompt to confirm finalized email before sending
        -e editor          use the specified editor to write mail (default is the
                           value of the \$EDITOR variable)
        -f from_address    account that email is being sent from
        -F from_name       name to be displayed in the From: field (default is
                           the username of the specified account)
        -h                 display this message and exit
+       -g                 encrypt the body of the message using gpg
        -p password        **DANGEROUS OPTION** use the given password to log in
                           to the from_address account
        -s smtp_server     use the specified smtp server. the format should be as
@@ -65,7 +85,7 @@ if you're typing it out.
 EOF
 }
 
-while getopts ":b:e:f:F:hp:s:S:t:T:" opt; do
+while getopts ":b:ce:f:F:ghp:s:S:t:T:" opt; do
     case $opt in
         b) if [ -f "$OPTARG" ]; then
                body_file="$OPTARG"
@@ -73,9 +93,11 @@ while getopts ":b:e:f:F:hp:s:S:t:T:" opt; do
                echo "error: $OPTARG is not a valid file"
            fi
            ;;
+        c) confirm=true ;;
         e) EDITOR="$OPTARG" ;;
         f) from_address="$OPTARG" ;;
         F) from_name="$OPTARG" ;;
+        g) gpg_encrypt=true ;;
         h) usage; exit 0 ;;
         p) password="$OPTARG" ;;
         s) smtp_server="$OPTARG" ;;
@@ -136,8 +158,9 @@ fi
 
 ########## email
 
-mail_tmp=$(mktemp -u /tmp/email-XXXXX)
-
+# set up template
+mail_tmp=$(tempfile)
+trap "quit 1" SIGINT SIGTERM
 cat <<EOF > $mail_tmp
 From: "$from_name" <$from_address>
 To: "$to_name" <$to_address>
@@ -146,16 +169,48 @@ Subject: $subject
 
 EOF
 
-trap "rm -f $mail_tmp; stty sane" SIGINT SIGTERM
+# compose the email using a text editor
 if [ -z "$body_file" ]; then
     $EDITOR $mail_tmp
 else
-    mail_tmp_intermediate=$(mktemp -u /tmp/email-XXXXX)
-    head -n 4 $mail_tmp > $mail_tmp_intermediate
-    cat $mail_tmp_intermediate "$body_file" > $mail_tmp
-    rm $mail_tmp_intermediate
+    mail_tmp_header=$(tempfile)
+    head -n 4 $mail_tmp > $mail_tmp_header
+    cat $mail_tmp_header "$body_file" > $mail_tmp
 fi
 
+# encrypt email
+if $gpg_encrypt; then
+    mail_tmp_header=$(tempfile)
+    head -n 4 $mail_tmp > $mail_tmp_header
+
+    mail_tmp_encrypted_body=$(tempfile)
+    tail -n +6 $mail_tmp | \
+        gpg --armor --output - --encrypt --recipient $to_address \
+        > $mail_tmp_encrypted_body
+
+    if ! [ -f $mail_tmp_encrypted_body ]; then
+        echo "error: gpg encrypt failed; aborted email"
+        quit 1
+    else
+        cat $mail_tmp_header $mail_tmp_encrypted_body > $mail_tmp
+    fi
+fi
+
+# confirm before sending
+if $confirm; then
+    cat $mail_tmp
+    cat << EOF
+==========
+send email? (Y/n)
+EOF
+    read ans
+    if [ "${ans,,}" = "n" ]; then
+        echo "aborted email"
+        quit 0
+    fi
+fi
+
+# send email
 curl \
     --url "$smtp_server" --ssl-reqd \
     --user "$from_address$(! [ -z "$password" ] && echo ":$password")" \
@@ -163,4 +218,4 @@ curl \
     --mail-rcpt "$to_address" \
     --upload-file $mail_tmp
 
-rm -f $mail_tmp
+quit 0
