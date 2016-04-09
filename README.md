@@ -13,7 +13,7 @@ scripts
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
-* email.sh - wrapper around the curl command for sending emails from the command line
+* email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
 
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
   * embedded art in the music files
@@ -29,7 +29,7 @@ scripts
 
 * sortimagesbyfx.sh - sort a directory of images according to a property of the images. for example: sort images according to increasing hue or increasing lightness
 
-* trash.sh - wrapper for gvfs-trash that allows for easy trash operations like listing and restoring trashed items from the command line
+* trash.sh - wrapper for gvfs-trash that allows for quick trash operations like listing and restoring trashed items from the command line
 
 * trim.c - an interactive "cut". not exactly a "script" but didn't warrant a new repository. precursor to trim.py; will probably be removed in the future.
 

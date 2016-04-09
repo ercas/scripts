@@ -188,7 +188,7 @@ if $gpg_encrypt; then
         gpg --armor --output - --encrypt --recipient $to_address \
         > $mail_tmp_encrypted_body
 
-    if ! [ -f $mail_tmp_encrypted_body ]; then
+    if [ $(du -b $mail_tmp_encrypted_body | awk '{print $1}') = 0 ]; then
         echo "error: gpg encrypt failed; aborted email"
         quit 1
     else
