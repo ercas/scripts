@@ -21,6 +21,8 @@ scripts
   * musicbrainz/archive.org cover art archive
   * slothradio/amazon
 
+* posixman.sh - display man pages from the POSIX.1-2008 utilities manual by parsing data from the [online edition](http://pubs.opengroup.org/onlinepubs/9699919799/). posixman.sh will create a local repository of html pages in ~/Documents/posix_man_pages the first time it runs; subsequent runs will consult that repository. depends on w3m to convert the html to easy-to-read plaintext.
+
 * qemuboot.sh - small script to manage qemu virtual machines
 
 * removeduplicates.sh - remove duplicate files in the current directory or the specified directory (if any)
