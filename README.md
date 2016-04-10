@@ -9,7 +9,7 @@ directories
 scripts
 -------
 * i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
-![demo image](i3-locker-demo.png)
+![demo image](README-images/i3-locker-demo.png)
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
@@ -52,6 +52,6 @@ scripts
 * workaholic.sh - keep your cpu busy when you're away by queueing cpu/io intensive tasks that would otherwise bottleneck resources and slow down your workflow. running tasks are paused when you return and resume when you leave again.
 
 * wplatestgoes.sh - a script to fetch the two latest images from the noaa environmental visualization laboratory's daily repository (ftp://ftp.nnvl.noaa.gov/View/GOES/), create transition images between them, and set the wallpaper to one of the images every hour, progressing from the second latest image to the latest image.
-![demo image](wplatestgoes-demo.gif)
+![demo image](README-images/wplatestgoes-demo.gif)
 
 * ytchannelscraper.sh - very thin wrapper around grep, sed, and youtube-dl that automates the downloading of entire youtube channels. some interaction with a browser is required.
