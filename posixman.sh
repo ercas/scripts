@@ -1,5 +1,5 @@
 #!/usr/bin/sh
-# display man pages from the POSIX.1-2008 utilities manual, available at:
+# display man pages from the POSIX 1003.1 2013 edition manual, available at:
 # http://pubs.opengroup.org/onlinepubs/9699919799/
 # depends on w3m
 
@@ -11,10 +11,9 @@ if ! [ -d $posix_man_dir ]; then
     echo "could not find local posix manual directory; downloading now..."
     mkdir -p $posix_man_dir
     wget -qO - http://pubs.opengroup.org/onlinepubs/9699919799/utilities/contents.html | \
-        grep "<li.*utilities/.*.html" | \
-        sed \
-            -e 's|<li type="disc"><a href="..|http://pubs.opengroup.org/onlinepubs/9699919799|g' \
-            -e "s|#.*||g" | \
+        grep -o utilities.*html | \
+        sed -e "s|^|http://pubs.opengroup.org/onlinepubs/9699919799/|g" \
+            -e "/contents/d" | \
         uniq | \
         xargs wget -P $posix_man_dir
 fi
