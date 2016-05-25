@@ -13,6 +13,8 @@ scripts
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
+* dumpinfo.sh - script that outputs lots of system information, mainly meant for checking on the status of remote servers
+
 * email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
 
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
@@ -37,7 +39,7 @@ scripts
 
 * trim.py - an interactive "cut". reads text from stdin and allows the user select what will be copied or printed to stdout via an ncurses interface. you should probably use vipe from [moreutils](https://joeyh.name/code/moreutils/) instead.
 
-* weather.sh - get the current weather from http://openweathermap.org
+* weather.sh - get the current weather from [openweathermap](http://openweathermap.org)
 
         $ ./weather.sh -m 2174003
         Weather for Brisbane: scattered clouds
@@ -48,6 +50,19 @@ scripts
         Wind:         2.6mph @ 200°
         Sunrise:      03:55:53 PM
         Sunset:       03:36:56 AM
+
+* weather.py - alternative to weather.sh that gets data from [weather.gov](http://weather.gov) instead of openweathermap
+
+        $ ./weather.py 40.7127 -74.0059
+        Current Weather for New York NY:
+        Gradual Clearing
+
+        Updated: 24 May 2016 @ 23:00 PM
+        Temperature:       66°F
+        Cloud Cover:       77%
+        Sustained Wind:    5 mph @ 230°
+        Humidity:          61%
+        Precipitation:     8%
 
 * workaholic.sh - keep your cpu busy when you're away by queueing cpu/io intensive tasks that would otherwise bottleneck resources and slow down your workflow. running tasks are paused when you return and resume when you leave again.
 
