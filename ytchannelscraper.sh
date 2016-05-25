@@ -35,6 +35,7 @@ $editor $tempfile
 
 grep -oP "/watch\?v=.*(?=\")" $tempfile | \
     sed "s|^|https://youtube.com|g" | \
-    xargs youtube-dl -i -o "%(upload_date)s %(id)s - %(title)s.%(ext)s"
+    tr "\n" "\0" | \
+    xargs -0 youtube-dl -i -o "%(upload_date)s %(id)s - %(title)s.%(ext)s"
 
 rm -f $tempfile
