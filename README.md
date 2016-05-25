@@ -51,7 +51,7 @@ scripts
         Sunrise:      03:55:53 PM
         Sunset:       03:36:56 AM
 
-* weather.py - alternative to weather.sh that gets data from [weather.gov](http://weather.gov) instead of openweathermap
+* weather.py - alternative to weather.sh that gets data from [weather.gov](http://weather.gov) instead of openweathermap. the script may error if coordinates are not accurate enough; if this happens, try using the coordinates on wikipedia.
 
         $ ./weather.py 40.7127 -74.0059
         Current Weather for New York NY:

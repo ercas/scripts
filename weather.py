@@ -44,47 +44,48 @@ def print_weather(latitude, longitude):
             if node.get("type") == type:
                 return node
 
-    wrapped_description = " ".join(
+    wrapped_description = "\n".join(
             textwrap.wrap(
                 ElementTree.fromstring(weather_simple_xml).\
                     find("data").find("parameters").find("weather").\
-                    find("weather-conditions").attrib["weather-summary"]
-                ,width = 30,break_long_words=False))
+                    find("weather-conditions").attrib["weather-summary"],
+                width = 30,
+                break_long_words = False))
 
-    print(
-        "Current Weather for "
-            + root.find("data").find("location").find("city").text
-            + ":\n"
-            + wrapped_description
-            + "\n\n"
-        "Updated: "
-            # %z is defective so the timezone is cropped from the date string
-            + datetime.strptime(
-                root.find("data").find("time-layout").find("start-valid-time").text[:-6],
-                "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y @ %H:%M %p")
-            + "\n"
-        "Temperature:       "
+    print("Current Weather for "
+        + root.find("data").find("location").find("city").text
+        + ":\n"
+        + wrapped_description
+        + "\n"
+    )
+    print("Updated: "
+        # %z is defective so the timezone is cropped from the date string
+        + datetime.strptime(
+            root.find("data").find("time-layout").find("start-valid-time").text[:-6],
+            "%Y-%m-%dT%H:%M:%S").strftime("%d %B %Y @ %I:%M %p")
+    )
+    print("Temperature:       "
             + temperature("hourly")[0].text
             + labels["temp"]
-            + "\n"
-        "Cloud Cover:       "
-            + parameters.find("cloud-amount")[0].text
-            + labels["clouds"]
-            + "\n"
-        "Sustained Wind:    "
-            + parameters.find("wind-speed")[0].text
-            + labels["wind-speed"]
-            + " @ "
-            + parameters.find("direction")[0].text
-            + labels["wind-direction"]
-            + "\n"
-        "Humidity:          "
-            + parameters.find("humidity")[0].text
-            + labels["humidity"]
-            + "\n"
-        "Precipitation:     "
-            + parameters.find("probability-of-precipitation")[0].text
-            + labels["precipitation"]
+    )
+    print("Cloud Cover:       "
+        + parameters.find("cloud-amount")[0].text
+        + labels["clouds"]
+    )
+    print("Sustained Wind:    "
+        + parameters.find("wind-speed")[0].text
+        + labels["wind-speed"]
+        + " @ "
+        + parameters.find("direction")[0].text
+        + labels["wind-direction"]
+    )
+    print("Humidity:          "
+        + parameters.find("humidity")[0].text
+        + labels["humidity"]
+    )
+    print("Precipitation:     "
+        + parameters.find("probability-of-precipitation")[0].text
+        + labels["precipitation"]
     )
 
 try:
