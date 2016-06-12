@@ -52,7 +52,7 @@ def print_weather(latitude, longitude):
                 width = 30,
                 break_long_words = False))
 
-    print("Current Weather for "
+    print("Weather Forecast for "
         + root.find("data").find("location").find("city").text
         + ":\n"
         + wrapped_description
