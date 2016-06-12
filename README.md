@@ -11,6 +11,8 @@ scripts
 * i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
 ![demo image](README-images/i3-locker-demo.png)
 
+* backup.py - a wrapper for rsync that generates rsync commands based on predefined targets. the first part of the script contains variables and dictionaries that must be configured for use. torsocks is automatically enabled for backup servers using onion services for nat punching.
+
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
 * dumpinfo.sh - script that outputs lots of system information, mainly meant for checking on the status of remote servers
