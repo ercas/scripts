@@ -1,5 +1,11 @@
 #!/usr/bin/bash
 
+#===== 6. SHORT PROCESS INFO (sorted by memory usage, command arguments stripped)
+#$(ps -ewo pid,user,priority,vsize,pcpu,rss,cmd --sort=-rss | \
+#    awk '{print $1 "\t" $2 "\t\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $7}')
+
+ssh_log=$(journalctl -o short --since yesterday -u sshd)
+
 cat << EOF
 System report for $(hostname) on $(date "+%d %B %Y at %r")
 
@@ -9,8 +15,8 @@ System report for $(hostname) on $(date "+%d %B %Y at %r")
 3. MEMORY USAGE
 4. DISK USAGE
 5. SENSORS
-6. SHORT PROCESS INFO
-7. SSH CONNECTION LOG
+6. SSH CONNECTIONS ACCEPTED
+7. SSH CONNECTIONS REJECTED
 
 ===== 1. UPTIME AND LOAD
 $(uptime)
@@ -29,10 +35,10 @@ $(df -h --output=source,size,used,avail,pcent)
 ===== 5. SENSORS
 $(sensors)
 
-===== 6. SHORT PROCESS INFO (sorted by memory usage, command arguments stripped)
-$(ps -ewo pid,user,priority,vsize,pcpu,rss,cmd --sort=-rss | \
-    awk '{print $1 "\t" $2 "\t\t" $3 "\t" $4 "\t" $5 "\t" $6 "\t" $7}')
+===== 6. SSH CONNECTIONS ACCEPTED (since yesterday)
+$(grep Accepted <<< "$ssh_log")
 
-===== 7. SSH CONNECTION LOG (since yesterday)
-$(journalctl -o short --since yesterday -u sshd)
+===== 7. SSH CONNECTIONS REJECTED (since yesterday)
+$(grep -E "preauth|Invalid|Did not receive" <<< "$ssh_log")
+
 EOF
