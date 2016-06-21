@@ -53,7 +53,7 @@ def main():
     if ".onion" in args.hostname:
         print("NOTICE: onion service detected; using torsocks.")
         rsync_base_cmd = "torsocks " + rsync_base_cmd
-        ssh_base_cmd = "torsocks " + ssh_base_cmd
+        mkdir_base_cmd = "torsocks " + mkdir_base_cmd
 
     # create the remote directory if it doesn't exist yet and back up to it
     subprocess.call(shlex.split(mkdir_base_cmd))
