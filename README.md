@@ -8,8 +8,7 @@ directories
 
 scripts
 -------
-* i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
-![demo image](README-images/i3-locker-demo.png)
+* anonmgur\_upload.sh - upload an image to [anonmgur](https://anonmgur.com)
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
@@ -18,6 +17,9 @@ scripts
 * email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
 
 * html-font-demo - generate a webpage that gives a demo of all currently installed fonts
+
+* i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
+![demo image](README-images/i3-locker-demo.png)
 
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
   * embedded art in the music files
