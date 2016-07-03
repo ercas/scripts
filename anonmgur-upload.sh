@@ -5,6 +5,7 @@
 curl --ssl-reqd \
     -F "browse=@$1" \
     -F "url=" \
-    -F "submit=" https://anonmgur.com/?upload=upload | \
+    -F "submit=" \
+    https://anonmgur.com/?upload=upload | \
     grep -oP "(?<=Click \<a href=\").*(?=\"\>here)" | \
     sed "s|?view=|/up/|g"

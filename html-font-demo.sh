@@ -51,7 +51,7 @@ fc-list | cut -d ":" -f 2 | cut -d "," -f 1 | sed "s/^ //g" | sort | uniq -u | w
     cat << EOF >> "$output"
         <div style="font-family: $font;">
             <div class=header>$font <span>($font)</span></div>
-            ABCDEFGHIJKLMNOP abcdefghijklmnop 0243456789
+            ABCDEFGHIJKLMNOP abcdefghijklmnop 01243456789
             <br>$(shuf -n 1 <<< "$quotes")
             <br><b>$(shuf -n 1 <<< "$quotes")</b>
             <br><i>$(shuf -n 1 <<< "$quotes")</i>
