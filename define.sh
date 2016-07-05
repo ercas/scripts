@@ -20,9 +20,17 @@ function define_word() {
                 break
             fi
 
-        # write all other lines normally
         else
             echo "$line"
+
+            # provide context if a definition refers to another word
+            # ex. "See Foo" "bar of Foo"
+            if grep -qE "^Defn: (See|.*of [A-Z])" <<< "$line"; then
+                # extract the last word in the line, ex. Foo, and define it
+                context=$(grep -oE "[^ ]*$" <<< "$line" | tr -dc "[:alpha:]")
+                define_word "$context" | sed "s/^/>> /g"
+            fi
+
         fi
 
     done
