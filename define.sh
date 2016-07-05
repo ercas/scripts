@@ -16,12 +16,25 @@ if ! [ -f $dic ]; then
     fi
 fi
 
-grep -ozP "^${1^^}\s*\$(\n|.)*?.*\n(?=[A-Z]{3})" $dic | head -n -1 | while read line; do
-    if [ "${line^^}" = "$line" ] && echo $line | grep -qE "[[:alnum:]]"; then
-        echo -e "\e[4m$line\e[m\n"
+# assuming that definitions are not longer than 100 lines
+grep -A 100 "^${1^^}\s*$" $dic | while read line; do
+
+    # if this line is all caps
+    if [ "${line^^}" = "$line" ] && grep -qE "[[:alnum:]]" <<< "$line"; then
+
+        # if this line is the queried word, underline it
+        if [ "$(tr -dc "[:alnum:]" <<< "$line")" = "${1^^}" ]; then
+            echo -e "\e[4m$line\e[m\n"
+
+        # if it's not, then it's the next word in the dictionary
+        else
+            break
+        fi
+
+    # write all other lines normally
     else
         echo "$line"
     fi
+
 done
 
-#Word, v. t. [imp. & p. p. Worded; p. pr. & vb. n. Wording.] 25 columns
