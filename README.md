@@ -12,6 +12,40 @@ scripts
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
 
+        $ ./define.sh took
+        TOOK
+
+        Took,
+
+        Defn: imp. of Take.
+        >> TAKE
+        >>
+        >> Take, obs. p. p. of Take.
+        >>
+        >> Defn: Taken. Chaucer.
+        >>
+        >> TAKE
+        >>
+        >> Take, v. t. [imp. Took; p. p. Takend; p. pr. & vb. n. Taking.] Etym:
+        >> [Icel. taka; akin to Sw. taga, Dan. tage, Goth. tekan to touch; of
+        >> uncertain origin.]
+        >>
+        >> 1. In an active sense; To lay hold of; to seize with the hands, or
+        >> otherwise; to grasp; to get into one's hold or possession; to
+        >> procure; to seize and carry away; to convey. Hence, specifically: --
+        >> (a) To obtain possession of by force or artifice; to get the custody
+        >> or control of; to reduce into subjection to one's power or will; to
+        >> capture; to seize; to make prisoner; as, to take am army, a city, or
+        >> a ship; also, to come upon or befall; to fasten on; to attack; to
+        >> seize; -- said of a disease, misfortune, or the like.
+        >> This man was taken of the Jews. Acts xxiii. 27.
+        >> Men in their loose, unguarded hours they take; Not that themselves
+        >> are wise, but others weak. Pope.
+        >> They that come abroad after these showers are commonly taken with
+        >> sickness. Bacon.
+        >> There he blasts the tree and takes the cattle And makes milch kine
+        >> yield blood. Shak.
+
 * dumpinfo.sh - script that outputs lots of system information, mainly meant for checking on the status of remote servers
 
 * email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
