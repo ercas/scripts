@@ -73,6 +73,8 @@ scripts
 
 * sortimagesbyfx.sh - sort a directory of images according to a property of the images. for example: sort images according to increasing hue or increasing lightness
 
+* tarball-searcher.sh - script to automate searching through multiple tarballs for a given set of regular expressions.
+
 * trash.sh - wrapper for gvfs-trash that allows for quick trash operations like listing and restoring trashed items from the command line
 
 * trim.c - an interactive "cut". not exactly a "script" but didn't warrant a new repository. precursor to trim.py; will probably be removed in the future.
