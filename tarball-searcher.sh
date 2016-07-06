@@ -42,11 +42,22 @@ usage: $(basename $0) [-vV] [-a archivedir] [-c cachedir] [-r resultdir] regex..
        -V               very verbose mode (-v option passed to all commands);
                           also triggers -v
        regex            a regular expression that will be used by GNU grep -rliE
-
 archivedir, cachedir, and resultdir are relative to the directory that this
 script is in.
 
 default behavior is $(basename $0) -a pool -c cache -r searchresults
+
+WARNING: $(basename $0) is very i/o intensive. for every tarball found in
+archivedir:
+1. each tarball is unpacked into cachedir
+2. each regular expression is passed to grep -rliE one by one to find matches
+    in cachedir
+3. all matches are copied to resultdir
+for this reason, it is suggested that either this script is run on an external
+disk so that it can set up those directories on that disk, or that you manually
+create those directories on an external disk and then specify them with -a, -c,
+and -r. additionally, cachedir and resultdir should be on a disk that will not
+be heavily damaged by repeated overwriting.
 
 suggested setup:
 /run/media/external_disk/tarball-searcher/
