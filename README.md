@@ -48,6 +48,8 @@ scripts
 
 * dumpinfo.sh - script that outputs lots of system information, mainly meant for checking on the status of remote servers
 
+* duplicates.sh - find duplicate files by comparing md5 checksums. much faster than removeduplicates.sh, which uses cmp.
+
 * email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
 
 * html-font-demo.sh - generate a webpage that gives a demo of all currently installed fonts
@@ -67,7 +69,7 @@ scripts
 
 * remote-backup.py - a wrapper for rsync that generates rsync commands based on predefined targets. the first part of the script contains variables and dictionaries that must be configured for use. torsocks is automatically enabled for backup servers using onion services for nat punching.
 
-* removeduplicates.sh - remove duplicate files in the current directory or the specified directory (if any)
+* removeduplicates.sh - remove duplicate files in the current directory or the specified directory (if any). deprecated; see duplicates.sh instead.
 
 * sortbylinelength.sh - sort the specified file so that the longest lines are first (or last, if -r is specified)
 
