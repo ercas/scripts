@@ -47,6 +47,11 @@ shift $((OPTIND-1))
 
 ########## main
 
+# stand-in for echo that only runs if $verbose is true and prints to stderr
+function log() {
+    $verbose && echo "$@" >& 2
+}
+
 # check if searchdir exists
 if ! [ -z "$1" ]; then
     if [ -d "$1" ]; then
@@ -60,18 +65,18 @@ fi
 # check if remove_cmd is available if in remove mode
 base_cmd=$(echo "$remove_cmd" | cut -d " " -f 1)
 if ! command -v $base_cmd > /dev/null && $remove; then
-    echo "error: $base_cmd is not available; using rm"
+    echo "error: $base_cmd is not available; using rm" >& 2
     remove_cmd=rm
 fi
 
 # calculate checksums
-$verbose && echo "finding files and calculating md5 checksums..."
+$verbose && echo "finding files and calculating md5 checksums..." >& 2
 sums=$(find "$searchdir" $find_args -type f | \
     sort | tr "\n" "\0" | xargs -0 md5sum | \
     tee $($verbose && echo /dev/fd/2 || echo /dev/null))
 
 # find duplicates
-$verbose && echo "finding duplicates..."
+$verbose && echo "finding duplicates..." >& 2
 cut -d " " -f 1 <<< "$sums" | sort | uniq -d | while read repeated_hash; do
 
     # print hashes if verbose and removing things or if not removing anything
