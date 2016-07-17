@@ -10,7 +10,7 @@ scripts
 -------
 * anonmgur\_upload.sh - upload an image to [anonmgur](https://anonmgur.com)
 
-* define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary
+* define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary. if other words are referenced in the definition, those are also defined (see example)
 
         $ ./define.sh took
         TOOK
