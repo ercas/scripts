@@ -51,7 +51,7 @@ fi
 
 # open in less if the definition's height is greater than the terminal's
 defn=$(define_word "$1")
-if [ $(wc -l <<< "$defn") -gt $(tput lines) ]; then
+if [ $(wc -l <<< "$defn") -gt $[$(tput lines) - 1] ]; then
     less -r <<< "$defn"
 else
     echo "$defn"
