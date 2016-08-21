@@ -97,7 +97,7 @@ cut -d " " -f 1 <<< "$sums" | sort | uniq -d | while read repeated_hash; do
         # remove the stuff
         echo "$to_remove" | while read file; do
             $verbose && echo "removing $file"
-            $remove_cmd $file
+            $remove_cmd "$file"
         done
 
     else
