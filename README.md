@@ -8,7 +8,7 @@ directories
 
 scripts
 -------
-* anonmgur\_upload.sh - upload an image to [anonmgur](https://anonmgur.com)
+* anonmgur\_upload.sh - **prototype** upload an image to [anonmgur](https://anonmgur.com)
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary. if other words are referenced in the definition, those are also defined (see example)
 
@@ -51,6 +51,8 @@ scripts
 * duplicates.sh - find duplicate files by comparing md5 checksums. much faster than removeduplicates.sh, which uses cmp.
 
 * email.sh - wrapper around the curl command for quickly sending emails from the command line. emails can either be pre-composed plaintext files or can be composed on the spot using your preferred text editor. there is also support for quickly encrypting the email body using gpg.
+
+* getazlyrics.sh - **prototype**: automatically fetch and parse lyrics from [azlyrics](http://www.azlyrics.com/), given the path of a music file, and save them in ~/.lyrics.
 
 * html-font-demo.sh - generate a webpage that gives a demo of all currently installed fonts
 
