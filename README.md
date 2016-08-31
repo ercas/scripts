@@ -8,7 +8,9 @@ directories
 
 scripts
 -------
-* anonmgur\_upload.sh - **prototype** upload an image to [anonmgur](https://anonmgur.com)
+* anonmgur-upload.sh - **prototype** upload an image to [anonmgur](https://anonmgur.com)
+
+* bf-visualizer.py: **wip**: brainfuck interpreter and visualizer
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary. if other words are referenced in the definition, those are also defined (see example)
 
