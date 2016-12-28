@@ -8,9 +8,9 @@ directories
 
 scripts
 -------
-* anonmgur-upload.sh - **prototype** upload an image to [anonmgur](https://anonmgur.com)
+* anonmgur-upload.sh - **prototype**: upload an image to [anonmgur](https://anonmgur.com)
 
-* bf-visualizer.py: **wip**: brainfuck interpreter and visualizer
+* bf-visualizer.py - **wip**: brainfuck interpreter and visualizer
 
 * define.sh - define a word by parsing the gutenberg copy of webster's unabridged dictionary. if other words are referenced in the definition, those are also defined (see example)
 
@@ -66,6 +66,8 @@ scripts
   * art cached my mpdalbumart.sh
   * musicbrainz/archive.org cover art archive
   * slothradio/amazon
+
+* organize-music.sh - automatically decompress, convert if necessary, and organize music. you can specify what formats should be left alone, what formats should be converted, and what format those that should be converted should be converted into. music is organized into music/Artist Name/Album Name/%2d - Track Name.ext
 
 * posixman.sh - display man pages from the POSIX.1-2008 utilities manual by parsing data from the [online edition](http://pubs.opengroup.org/onlinepubs/9699919799/). posixman.sh will create a local repository of html pages in ~/Documents/posix_man_pages the first time it runs; subsequent runs will consult that repository. depends on w3m to convert the html to easy-to-read plaintext.
 

@@ -23,7 +23,7 @@ def render_registers(cursor):
             registers_string = registers_string + " "
 
         registers_string = registers_string + ("%03d " % value)
-        labels = labels + ("  %d  " % index)
+        labels = labels + (" %3d " % index)
 
     print(labels)
     print(registers_string)
@@ -33,14 +33,17 @@ def main(src):
     global registers
     global pointer_position
 
+    # src is converted into a list so we can jump back in the index for loops
+    instructions = list(src)
+    index = 0
+    step = 1
     cursor = "~"
-    step = 0
     output = ""
     padding = str(len(str(len(src))))
 
-    for instruction in src:
+    while (index < len(instructions)):
 
-        step += 1
+        instruction = instructions[index]
 
         if (instruction == ">"):
             pointer_position += 1
@@ -75,6 +78,9 @@ def main(src):
         print("Output: %s" % output)
         print()
 
-        time.sleep(0.1)
+        index += 1
+        step += 1
 
-main(">+++<++>-.>>++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++........")
+        time.sleep(0.05)
+
+main(">+++<++>-.>>+++++++>>>>>>>>>><<<<<<<<<<+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+.+.+.+.+.")
