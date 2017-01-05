@@ -6,6 +6,12 @@ directories
 
 * scrapers/ - a collection of small website scrapers
 
+* wm/ - tools related to window management
+
+wm
+--
+* center-window.sh - center a window in i3 using basic x utilities
+
 scripts
 -------
 * anonmgur-upload.sh - **prototype**: upload an image to [anonmgur](https://anonmgur.com)
