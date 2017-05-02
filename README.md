@@ -67,6 +67,8 @@ scripts
 * i3-locker.sh - a wrapper for i3lock that produces a somewhat fancier lock screen and changes the screen and dpms timeout. depends on [i3lock-color](https://github.com/eBrnd/i3lock-color), inspired by [i3lock-fancy](https://github.com/meskarune/i3lock-fancy).
 ![demo image](README-images/i3-locker-demo.png)
 
+* isopen.py - a tool to tell which of your favorite venues are open or not at the current time. does not account for holidays.
+
 * mpdalbumart.sh - automatically fetch and display album art of mpd's currently playing song with [meh](http://www.johnhawthorn.com/meh/). mpdalbumart.sh uses the following sources, in order of priority, and stops at the first source that returns valid art:
   * embedded art in the music files
   * art cached my mpdalbumart.sh
