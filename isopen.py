@@ -78,10 +78,17 @@ def main(times_json, relative):
                             "fri": ["9:00 am", "5:00 pm"],
                             "sat": ["9:00 am", "5:00 pm"]
                         }
+                    },
+                    {
+                        "name": "Only Thursdays",
+                        "hours": {
+                            "thu": ["9:00 am", "9:00 pm"],
+                        }
                     }
                 ]
             Times must be in one of the formats defined in the FORMATS array.
-            For example, 1:00 pm, 1 pm, 13:00, and 13 are all valid.
+            For example, 1:00 pm, 1 pm, 13:00, and 13 are all valid. If a venue
+            is closed for the whole day, that day can be ommitted.
         relative: A bool describing whether or not opening and closing times
             should be given in relation to the current time or not.
 
@@ -95,32 +102,35 @@ def main(times_json, relative):
     now_sod = second_of_day(now)
 
     for location in locations:
-        hours = location["hours"][today]
-        start = parse_time(hours[0])
-        end = parse_time(hours[1])
-        start_sod = second_of_day(start)
-        end_sod = second_of_day(end)
         _open = False
+        if (today in location["hours"]):
+            hours = location["hours"][today]
+            start = parse_time(hours[0])
+            end = parse_time(hours[1])
+            start_sod = second_of_day(start)
+            end_sod = second_of_day(end)
 
-        if (now_sod > start_sod) and (now_sod < end_sod):
-            _open = True
+            if (now_sod > start_sod) and (now_sod < end_sod):
+                _open = True
 
-            if (relative):
-                description = "Closes in %s" % time_diff(now, end)
+                if (relative):
+                    description = "Closes in %s" % time_diff(now, end)
+                else:
+                    description = "Open until %s" % hours[1]
+
+            elif (now_sod >= end_sod):
+                if (relative):
+                    description = "Closed %s ago" % time_diff(now, end)
+                else:
+                    description = "Closed for the day"
+
             else:
-                description = "Open until %s" % hours[1]
-
-        elif (now_sod >= end_sod):
-            if (relative):
-                description = "Closed %s ago" % time_diff(now, end)
-            else:
-                description = "Closed for the day"
-
+                if (relative):
+                    description = "Opens in %s" % time_diff(now, start)
+                else:
+                    description = "Closed until %s" % hours[0]
         else:
-            if (relative):
-                description = "Opens in %s" % time_diff(now, start)
-            else:
-                description = "Closed until %s" % hours[0]
+            description = "Closed today"
 
         print("%s: %s" % (location["name"], _open and OPEN or CLOSED))
         print(description)
