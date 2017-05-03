@@ -55,8 +55,6 @@ def time_diff(start_datetime, end_datetime):
     seconds = abs(end_datetime.second - start_datetime.second)
     if (hours > 1):
         return "%d hours" % hours
-    elif (hours == 1):
-        return "1 hour"
     elif (minutes > 0):
         return "%d minutes" % minutes
     else:
