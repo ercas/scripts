@@ -61,12 +61,20 @@ def time_diff(start_datetime, end_datetime):
 
     if (hours > 1):
         return "%d hours" % hours
-    elif (minutes > 0):
+    elif (minutes == 60):
+        return "1 hour"
+    elif (hours == 1):
+        return "1 hour and %d minutes" % (minutes - 60)
+    elif (minutes > 1):
         return "%d minutes" % minutes
+    elif (seconds == 60):
+        return "1 minute"
+    elif (minutes == 1):
+        return "1 minute and %d seconds" % (seconds - 60)
     else:
         return "%d seconds" % seconds
 
-def main(times_json, relative):
+def main(times_json, relative, absolute):
     """ Prints if locations are opened or closed
 
     Args:
@@ -108,6 +116,7 @@ def main(times_json, relative):
     now_sod = second_of_day(now)
 
     for location in locations:
+        description = []
         _open = False
         if (today in location["hours"]):
             hours = location["hours"][today]
@@ -120,26 +129,27 @@ def main(times_json, relative):
                 _open = True
 
                 if (relative):
-                    description = "Closes in %s" % time_diff(now, end)
-                else:
-                    description = "Open until %s" % hours[1]
+                    description.append("Open until %s" % hours[1])
+                if (absolute):
+                    description.append("Closes in %s" % time_diff(now, end))
 
             elif (now_sod >= end_sod):
                 if (relative):
-                    description = "Closed %s ago" % time_diff(now, end)
-                else:
-                    description = "Closed for the day"
+                    description.append("Closed for the day")
+                if (absolute):
+                    description.append("Closed %s ago" % time_diff(now, end))
 
             else:
                 if (relative):
-                    description = "Opens in %s" % time_diff(now, start)
-                else:
-                    description = "Closed until %s" % hours[0]
-        else:
-            description = "Closed today"
+                    description.append("Closed until %s" % hours[0])
+                if (absolute):
+                    description.append("Opens in %s" % time_diff(now, start))
+        elif (absolute):
+            description.append("Closed today")
 
         print("%s: %s" % (location["name"], _open and OPEN or CLOSED))
-        print(description)
+        if (len(description) > 0):
+            print("\n".join(description))
         #print("%d < %d < %d %s" % (start_sod, now_sod, end_sod, _open))
         print("")
 
@@ -150,8 +160,11 @@ if (__name__ == "__main__"):
     parser.add_option("-f", "--file", dest = "file", help = "The JSON to use",
                       metavar = "FILE", default = "isopen.json")
     parser.add_option("-a", "--abs", "--absolute", dest = "relative",
-                      help = "Toggle relative time output", default = True,
-                      action = "store_false")
+                      help = "Toggle absolute time output", default = False,
+                      action = "store_true")
+    parser.add_option("-r", "--rel", "--relative", dest = "absolute",
+                      help = "Toggle absolute time output", default = False,
+                      action = "store_true")
     (options, args) = parser.parse_args()
 
-    main(options.file, options.relative)
+    main(options.file, options.relative, options.absolute)
