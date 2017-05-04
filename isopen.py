@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import math
 
 WEEKDAYS = [ "mon", "tue", "wed", "thu", "fri", "sat", "sun" ]
 FORMATS = [ "%I:%M %p", "%H:%M", "%I %p", "%H" ]
@@ -50,9 +51,14 @@ def time_diff(start_datetime, end_datetime):
         A string describing the difference in time of day.
     """
 
-    hours = abs(end_datetime.hour - start_datetime.hour)
-    minutes = abs(end_datetime.minute - start_datetime.minute)
-    seconds = abs(end_datetime.second - start_datetime.second)
+    seconds = abs(
+        (end_datetime.second - start_datetime.second)
+        + (end_datetime.minute - start_datetime.minute) * 60
+        + (end_datetime.hour - start_datetime.hour) * 3600
+    )
+    minutes = math.floor(seconds/60)
+    hours = math.floor(seconds/3600)
+
     if (hours > 1):
         return "%d hours" % hours
     elif (minutes > 0):
