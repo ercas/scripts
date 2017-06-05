@@ -81,6 +81,8 @@ scripts
 
 * qemuboot.sh - small script to manage qemu virtual machines
 
+* rankfavs.py - pick favorite rows from a csv file, following the idea of [favorite pokemon](https://fio4ri.github.io/FavoritePokemon/).
+
 * remote-backup.py - a wrapper for rsync that generates rsync commands based on predefined targets. the first part of the script contains variables and dictionaries that must be configured for use. torsocks is automatically enabled for backup servers using onion services for nat punching.
 
 * removeduplicates.sh - remove duplicate files in the current directory or the specified directory (if any). deprecated; see duplicates.sh instead.
