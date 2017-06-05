@@ -69,11 +69,11 @@ def main(csv_path, names, descriptions, number, comparisons):
 
         response = bounded_input("enter a number: ", 0, comparisons)
         if (response < comparisons):
-            to_remove = current_round.pop(int(not bool(0)))
-            items = [
-                x for x in items
-                if x is not to_remove
-            ]
+            to_keep = current_round.pop(response)
+            for x in current_round:
+                if (x is not to_keep):
+                    print(x)
+                    items.remove(x)
 
         current_round = random.sample(items, comparisons)
         nround += 1
