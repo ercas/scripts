@@ -11,6 +11,9 @@ PAGE_URL_BASE = "http://www.lunarbaboon.com/comics/?currentPage="
 
 OUTPUT_DIR = "lunarbaboon"
 
+START_PAGE = 1
+END_PAGE = 146
+
 MAX_ATTEMPTS = 10
 
 PAGE_SLEEP = 1
@@ -53,7 +56,9 @@ def scrape_page(page_number):
         image_url = (
             "%s/%s" % (
                 ROOT.rstrip("/"),
-                post.find("div", {"class": "body"}).find("img")["src"].lstrip("/")
+                "/".join(
+                    post.find("div", {"class": "body"}).find("img")["src"].lstrip("/").split("/")[-2:]
+                )
             )
         ).split("?")[0]
         file_ext = image_url.split(".")[-1]
@@ -72,5 +77,5 @@ def scrape_page(page_number):
 if (__name__ == "__main__"):
     if (not os.path.isdir(OUTPUT_DIR)):
         os.mkdir(OUTPUT_DIR)
-    for i in range(1, 146):
+    for i in range(START_PAGE, END_PAGE):
         scrape_page(i)
