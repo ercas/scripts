@@ -26,7 +26,7 @@ def retrieve_rate_limited(url, attempt = 1):
         time.sleep(PAGE_SLEEP)
         return response
     elif (response.status_code == 429):
-        print(">> max attempts reached")
+        print(">> error 429 too many requests")
         time.sleep(TOO_MANY_REQUESTS_SLEEP)
     else:
         print(">> error %d" % response.status_code)
@@ -34,6 +34,8 @@ def retrieve_rate_limited(url, attempt = 1):
 
     if (attempt < MAX_ATTEMPTS):
         return retrieve_rate_limited(url, attempt + 1)
+    else:
+        print(">> MAX ATTEMPTS REACHED")
 
 def scrape_page(page_number):
     print("processing page %d" % page_number)
