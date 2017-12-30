@@ -33,7 +33,7 @@ def retrieve_rate_limited(url, attempt = 1):
         time.sleep(PAGE_SLEEP)
 
     if (attempt < MAX_ATTEMPTS):
-        retrieve_rate_limited(url, attempt + 1)
+        return retrieve_rate_limited(url, attempt + 1)
 
 def scrape_page(page_number):
     print("processing page %d" % page_number)
